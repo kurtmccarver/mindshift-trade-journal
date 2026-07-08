@@ -639,6 +639,13 @@ textarea {
   cursor: text;
 }
 
+.computed-input,
+input[readonly] {
+  background: color-mix(in srgb, var(--secondary-soft) 34%, var(--gray-50));
+  color: var(--ink);
+  cursor: not-allowed;
+}
+
 input[type="search"]::-webkit-search-cancel-button,
 input[type="search"]::-webkit-search-decoration {
   appearance: none;
@@ -1570,6 +1577,11 @@ tr:last-child td {
   background: var(--background);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--secondary) 35%, transparent);
   color: var(--ink);
+}
+
+.editable-stat.is-computed {
+  cursor: not-allowed;
+  opacity: 0.86;
 }
 
 .delete-custom {

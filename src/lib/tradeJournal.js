@@ -173,12 +173,17 @@ function numberValue(id) {
   return Number($(id)?.value) || 0;
 }
 
+function computedRiskMoney(capital = state.settings.capital, riskPercent = state.settings.riskPercent) {
+  return (Number(capital) || 0) * ((Number(riskPercent) || 0) / 100);
+}
+
 function readSettingsFromDom() {
   for (const id of fields) {
     const el = $(id);
     if (!el) continue;
     state.settings[id] = el.type === "checkbox" ? el.checked : el.value;
   }
+  state.settings.riskMoney = computedRiskMoney();
   saveState();
 }
 
@@ -194,6 +199,8 @@ function writeSettingsToDom() {
     }
   }
   if ($("marketSearch")) $("marketSearch").value = state.settings.symbol || "";
+  state.settings.riskMoney = computedRiskMoney();
+  if ($("riskMoney")) $("riskMoney").value = money.format(state.settings.riskMoney);
   document.querySelectorAll("[data-mirror-source]").forEach((mirror) => {
     mirror.value = state.settings[mirror.dataset.mirrorSource] ?? "";
   });
@@ -202,7 +209,6 @@ function writeSettingsToDom() {
 function getCalculator() {
   const capital = numberValue("capital");
   const riskPercent = numberValue("riskPercent");
-  const riskMoney = numberValue("riskMoney");
   const rawSl = numberValue("slPoints");
   const rawTp1 = numberValue("tp1Points");
   const rawTp2 = numberValue("tp2Points");
@@ -228,8 +234,7 @@ function getCalculator() {
     tp2Points = rawTp2 > 0 ? Math.abs(takeProfit2 - entry) : 0;
   }
 
-  const appSettings = loadAppSettings();
-  const riskAmount = appSettings.propFirmEnabled ? capital * (riskPercent / 100) : riskMoney || capital * (riskPercent / 100);
+  const riskAmount = computedRiskMoney(capital, riskPercent);
   const lotSize = slPoints > 0 && pointValue > 0 ? riskAmount / (slPoints * pointValue) : 0;
   const targetPoints = tp1Points || tp2Points || 0;
   const rr = slPoints > 0 && targetPoints > 0 ? targetPoints / slPoints : 0;

@@ -4,14 +4,13 @@
 
   let capital = 10000;
   let riskPercent = 1;
-  let riskMoney = 100;
   let entry = 0;
   let stopLoss = 100;
   let pointValue = 100;
   let target = 200;
   let mode = 'points';
 
-  $: riskAmount = riskMoney || capital * (riskPercent / 100);
+  $: riskAmount = (Number(capital) || 0) * ((Number(riskPercent) || 0) / 100);
   $: slDistance = mode === 'price' ? Math.abs(entry - stopLoss) : Number(stopLoss) || 0;
   $: tpDistance = mode === 'price' ? Math.abs(target - entry) : Number(target) || 0;
   $: lots = slDistance > 0 && pointValue > 0 ? riskAmount / (slDistance * pointValue) : 0;
@@ -46,7 +45,7 @@
       <div class="form-grid">
         <label><span>capital</span><input bind:value={capital} type="number" min="0" step="100" placeholder="10000" /></label>
         <label><span>risk %</span><input bind:value={riskPercent} type="number" min="0" step="0.1" placeholder="1" /></label>
-        <label><span>risk money</span><input bind:value={riskMoney} type="number" min="0" step="1" placeholder="100" /></label>
+        <label><span>risk money</span><input class="computed-input" value={money(riskAmount)} type="text" readonly aria-readonly="true" /></label>
         <label>
           <span>measurement</span>
           <select bind:value={mode}>

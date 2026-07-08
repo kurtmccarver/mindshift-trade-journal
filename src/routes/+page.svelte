@@ -96,7 +96,7 @@
       <div class="form-grid">
         <label><span>capital</span><input id="personalCapitalMirror" type="number" min="0" step="100" data-mirror-source="capital" /></label>
         <label><span>risk %</span><input id="personalRiskPercentMirror" type="number" min="0" step="0.1" data-mirror-source="riskPercent" /></label>
-        <label><span>risk money</span><input id="riskMoney" type="number" min="0" step="1" /></label>
+        <label><span>risk money</span><input id="riskMoney" class="computed-input" type="text" readonly aria-readonly="true" /></label>
         <label><span>target profit %</span><input id="targetProfitPercent" type="number" min="0" step="0.1" /></label>
         <label><span>target profit money</span><input id="targetProfitMoney" type="number" min="0" step="1" /></label>
       </div>

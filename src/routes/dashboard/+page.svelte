@@ -18,6 +18,7 @@
   $: recentTrades = data.trades.slice(0, 5);
   $: equityCurve = buildEquityCurve(data.trades);
   $: personalTargetAmount = Number(data.settings.targetProfitMoney) || (Number(data.settings.capital) || 0) * ((Number(data.settings.targetProfitPercent) || 0) / 100);
+  $: personalRiskMoney = (Number(data.settings.capital) || 0) * ((Number(data.settings.riskPercent) || 0) / 100);
   $: displayTargetAmount = appSettings.propFirmEnabled ? summary.targetAmount : personalTargetAmount;
   $: displayProgress = displayTargetAmount > 0 ? Math.max(0, Math.min(100, (summary.totalPnl / displayTargetAmount) * 100)) : 0;
   $: resultDistribution = [
@@ -196,7 +197,7 @@
     <div class="stats-grid dashboard-stats">
       <div><span>capital</span><span class="editable-stat" contenteditable="true" role="textbox" tabindex="0" data-original-value={summary.capital} on:keydown={handleEditableKey} on:blur={(event) => commitPersonalTarget(event, 'capital')}>{money(summary.capital)}</span></div>
       <div><span>risk %</span><span class="editable-stat" contenteditable="true" role="textbox" tabindex="0" data-original-value={data.settings.riskPercent || 0} on:keydown={handleEditableKey} on:blur={(event) => commitPersonalTarget(event, 'riskPercent')}>{Number(data.settings.riskPercent || 0)}%</span></div>
-      <div><span>risk money</span><span class="editable-stat" contenteditable="true" role="textbox" tabindex="0" data-original-value={data.settings.riskMoney || 0} on:keydown={handleEditableKey} on:blur={(event) => commitPersonalTarget(event, 'riskMoney')}>{money(data.settings.riskMoney || 0)}</span></div>
+      <div><span>risk money</span><strong class="editable-stat is-computed">{money(personalRiskMoney)}</strong></div>
       <div><span>target profit</span><span class="editable-stat" contenteditable="true" role="textbox" tabindex="0" data-original-value={personalTargetAmount} on:keydown={handleEditableKey} on:blur={(event) => commitPersonalTarget(event, 'targetProfitMoney')}>{money(personalTargetAmount)}</span></div>
     </div>
   </section>
