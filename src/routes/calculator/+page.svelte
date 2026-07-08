@@ -9,6 +9,7 @@
   let pointValue = 100;
   let target = 200;
   let mode = 'points';
+  let direction = 'long';
 
   $: riskAmount = (Number(capital) || 0) * ((Number(riskPercent) || 0) / 100);
   $: slDistance = mode === 'price' ? Math.abs(entry - stopLoss) : Number(stopLoss) || 0;
@@ -39,13 +40,20 @@
   <section class="section-enter">
     <div class="section-heading">
       <p>01 - lot sizing</p>
-      <span class="status-chip">{lots.toFixed(2)} volume</span>
+      <span class:side-chip-long={direction === 'long'} class:side-chip-short={direction === 'short'} class="status-chip">{direction} / {lots.toFixed(2)} volume</span>
     </div>
     <div class="card">
       <div class="form-grid">
         <label><span>capital</span><input bind:value={capital} type="number" min="0" step="100" placeholder="10000" /></label>
         <label><span>risk %</span><input bind:value={riskPercent} type="number" min="0" step="0.1" placeholder="1" /></label>
         <label><span>risk money</span><input class="computed-input" value={money(riskAmount)} type="text" readonly aria-readonly="true" /></label>
+        <label>
+          <span>direction</span>
+          <select bind:value={direction} class:side-select-long={direction === 'long'} class:side-select-short={direction === 'short'}>
+            <option value="long">Long</option>
+            <option value="short">Short</option>
+          </select>
+        </label>
         <label>
           <span>measurement</span>
           <select bind:value={mode}>

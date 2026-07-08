@@ -555,6 +555,8 @@ function updateCustomSelect(select) {
   const trigger = shell.querySelector(".select-trigger");
   const menu = shell.querySelector(".select-menu");
   const selected = select.options[select.selectedIndex];
+  shell.classList.toggle("side-tone-long", select.id === "direction" && select.value === "long");
+  shell.classList.toggle("side-tone-short", select.id === "direction" && select.value === "short");
   trigger.textContent = selected?.textContent || "";
   menu.innerHTML = "";
 
