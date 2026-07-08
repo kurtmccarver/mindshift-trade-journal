@@ -11,9 +11,12 @@
   let customFields = {};
 
   $: riskAmount = (Number(data.settings?.capital) || 0) * ((Number(data.settings?.riskPercent) || 0) / 100);
-  $: slDistance = trade.measurementMode === 'price' ? Math.abs(Number(trade.entry) - Number(trade.stopPrice)) : Number(trade.slPoints) || 0;
-  $: tp1Distance = trade.measurementMode === 'price' ? Math.abs(Number(trade.takeProfit1) - Number(trade.entry)) : Number(trade.tp1Points) || 0;
-  $: tp2Distance = trade.measurementMode === 'price' ? Math.abs(Number(trade.takeProfit2) - Number(trade.entry)) : Number(trade.tp2Points) || 0;
+  $: savedStopPrice = Number(trade.stopPrice) > 0 ? Number(trade.stopPrice) : priceFromPoints('stop', Number(trade.slPoints));
+  $: savedTakeProfit1 = Number(trade.takeProfit1) > 0 ? Number(trade.takeProfit1) : priceFromPoints('target', Number(trade.tp1Points));
+  $: savedTakeProfit2 = Number(trade.takeProfit2) > 0 ? Number(trade.takeProfit2) : priceFromPoints('target', Number(trade.tp2Points));
+  $: slDistance = trade.measurementMode === 'price' ? Math.abs(Number(trade.entry) - savedStopPrice) : Number(trade.slPoints) || 0;
+  $: tp1Distance = trade.measurementMode === 'price' ? Math.abs(savedTakeProfit1 - Number(trade.entry)) : Number(trade.tp1Points) || 0;
+  $: tp2Distance = trade.measurementMode === 'price' ? Math.abs(savedTakeProfit2 - Number(trade.entry)) : Number(trade.tp2Points) || 0;
   $: targetDistance = tp1Distance || tp2Distance || 0;
   $: lotSize = slDistance > 0 && Number(trade.pointValue) > 0 ? riskAmount / (slDistance * Number(trade.pointValue)) : 0;
   $: rr = slDistance > 0 && targetDistance > 0 ? targetDistance / slDistance : 0;
@@ -58,6 +61,14 @@
     return Number.isFinite(parsed) ? parsed : 0;
   }
 
+  function priceFromPoints(kind, points) {
+    const entry = Number(trade.entry) || 0;
+    const distance = Number(points) || 0;
+    if (!entry || !distance) return 0;
+    if (kind === 'stop') return trade.direction === 'short' ? entry + distance : entry - distance;
+    return trade.direction === 'short' ? entry - distance : entry + distance;
+  }
+
   function addTrade() {
     const manualPnl = trade.pnl !== '';
     const pnl = manualPnl
@@ -80,18 +91,18 @@
       measurementMode: trade.measurementMode,
       entry: parseNumber(trade.entry),
       exitPrice: parseNumber(trade.exitPrice),
-      stopPrice: parseNumber(trade.stopPrice),
-      takeProfit: parseNumber(trade.takeProfit1) || parseNumber(trade.takeProfit2),
-      takeProfit1: parseNumber(trade.takeProfit1),
-      takeProfit2: parseNumber(trade.takeProfit2),
+      stopPrice: savedStopPrice,
+      takeProfit: savedTakeProfit1 || savedTakeProfit2,
+      takeProfit1: savedTakeProfit1,
+      takeProfit2: savedTakeProfit2,
       slPoints: slDistance,
       tpPoints: targetDistance,
       tp1Points: tp1Distance,
       tp2Points: tp2Distance,
-      rawSl: trade.measurementMode === 'price' ? parseNumber(trade.stopPrice) : parseNumber(trade.slPoints),
-      rawTp: trade.measurementMode === 'price' ? parseNumber(trade.takeProfit1) || parseNumber(trade.takeProfit2) : parseNumber(trade.tp1Points) || parseNumber(trade.tp2Points),
-      rawTp1: trade.measurementMode === 'price' ? parseNumber(trade.takeProfit1) : parseNumber(trade.tp1Points),
-      rawTp2: trade.measurementMode === 'price' ? parseNumber(trade.takeProfit2) : parseNumber(trade.tp2Points),
+      rawSl: trade.measurementMode === 'price' ? savedStopPrice : parseNumber(trade.slPoints),
+      rawTp: trade.measurementMode === 'price' ? savedTakeProfit1 || savedTakeProfit2 : parseNumber(trade.tp1Points) || parseNumber(trade.tp2Points),
+      rawTp1: trade.measurementMode === 'price' ? savedTakeProfit1 : parseNumber(trade.tp1Points),
+      rawTp2: trade.measurementMode === 'price' ? savedTakeProfit2 : parseNumber(trade.tp2Points),
       pointValue: parseNumber(trade.pointValue),
       riskAmount,
       lotSize,
@@ -138,54 +149,68 @@
       {#if status}<span class="status-chip is-active">{status}</span>{/if}
     </div>
     <form class="card add-trade-card" on:submit|preventDefault={addTrade}>
-      <div class="calculator-group">
-        <p class="micro">details</p>
-        <div class="form-grid">
-          <label><span>date</span><input bind:value={trade.date} type="date" /></label>
-          <label><span>pair / token</span><input bind:value={trade.symbol} type="text" maxlength="32" placeholder="0" /></label>
-          <label>
-            <span>side</span>
-            <select bind:value={trade.direction} class:side-select-long={trade.direction === 'long'} class:side-select-short={trade.direction === 'short'}>
-              <option value="long">Long</option>
-              <option value="short">Short</option>
-            </select>
-          </label>
-          <label>
-            <span>result</span>
-            <select bind:value={trade.result}>
-              <option value="open">Open</option>
-              <option value="win">Win</option>
-              <option value="loss">Loss</option>
-              <option value="breakeven">Breakeven</option>
-            </select>
-          </label>
-        </div>
+      <div class="journal-table-wrap add-trade-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Pair</th>
+              <th>Side</th>
+              <th>Result</th>
+              <th>Entry</th>
+              <th>Exit</th>
+              <th>SL Price</th>
+              <th>TP1 Price</th>
+              <th>TP2 Price</th>
+              <th>Point Value</th>
+              <th>PnL</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input bind:value={trade.date} type="date" /></td>
+              <td><input bind:value={trade.symbol} type="text" maxlength="32" placeholder="0" /></td>
+              <td>
+                <select bind:value={trade.direction} class:side-select-long={trade.direction === 'long'} class:side-select-short={trade.direction === 'short'}>
+                  <option value="long">Long</option>
+                  <option value="short">Short</option>
+                </select>
+              </td>
+              <td>
+                <select bind:value={trade.result}>
+                  <option value="open">Open</option>
+                  <option value="win">Win</option>
+                  <option value="loss">Loss</option>
+                  <option value="breakeven">Breakeven</option>
+                </select>
+              </td>
+              <td><input bind:value={trade.entry} type="number" min="0" step="0.00001" /></td>
+              <td><input bind:value={trade.exitPrice} type="number" min="0" step="0.00001" /></td>
+              <td><input bind:value={trade.stopPrice} type="number" min="0" step="0.00001" placeholder={savedStopPrice ? String(savedStopPrice) : '0'} /></td>
+              <td><input bind:value={trade.takeProfit1} type="number" min="0" step="0.00001" placeholder={savedTakeProfit1 ? String(savedTakeProfit1) : '0'} /></td>
+              <td><input bind:value={trade.takeProfit2} type="number" min="0" step="0.00001" placeholder={savedTakeProfit2 ? String(savedTakeProfit2) : '0'} /></td>
+              <td><input bind:value={trade.pointValue} type="number" min="0" step="0.01" /></td>
+              <td><input bind:value={trade.pnl} type="number" step="0.01" placeholder="0" /></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
-      <div class="calculator-group">
-        <p class="micro">price and risk</p>
-        <div class="form-grid">
-          <label>
-            <span>measurement</span>
-            <select bind:value={trade.measurementMode}>
-              <option value="points">Points</option>
-              <option value="price">Actual price</option>
-            </select>
-          </label>
-          <label><span>entry</span><input bind:value={trade.entry} type="number" min="0" step="0.00001" /></label>
-          <label><span>exit optional</span><input bind:value={trade.exitPrice} type="number" min="0" step="0.00001" /></label>
-          {#if trade.measurementMode === 'price'}
-            <label><span>stop price</span><input bind:value={trade.stopPrice} type="number" min="0" step="0.00001" /></label>
-            <label><span>tp1 price optional</span><input bind:value={trade.takeProfit1} type="number" min="0" step="0.00001" /></label>
-            <label><span>tp2 price optional</span><input bind:value={trade.takeProfit2} type="number" min="0" step="0.00001" /></label>
-          {:else}
-            <label><span>sl points</span><input bind:value={trade.slPoints} type="number" min="0" step="0.00001" /></label>
-            <label><span>tp1 points optional</span><input bind:value={trade.tp1Points} type="number" min="0" step="0.00001" /></label>
-            <label><span>tp2 points optional</span><input bind:value={trade.tp2Points} type="number" min="0" step="0.00001" /></label>
-          {/if}
-          <label><span>point value / lot</span><input bind:value={trade.pointValue} type="number" min="0" step="0.01" /></label>
-          <label><span>manual pnl optional</span><input bind:value={trade.pnl} type="number" step="0.01" placeholder="0" /></label>
-        </div>
+      <div class="quote-line custom-entry calc-mode-row">
+        <label>
+          <span>calculation mode</span>
+          <select bind:value={trade.measurementMode}>
+            <option value="price">Actual price</option>
+            <option value="points">Points</option>
+          </select>
+        </label>
+        {#if trade.measurementMode === 'points'}
+          <label><span>sl points</span><input bind:value={trade.slPoints} type="number" min="0" step="0.00001" /></label>
+          <label><span>tp1 points</span><input bind:value={trade.tp1Points} type="number" min="0" step="0.00001" /></label>
+          <label><span>tp2 points</span><input bind:value={trade.tp2Points} type="number" min="0" step="0.00001" /></label>
+        {:else}
+          <p class="price-source">Sizing uses entry, SL price, and TP price from the trade row.</p>
+        {/if}
       </div>
 
       {#if data.customColumns?.length}

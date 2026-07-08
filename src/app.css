@@ -1481,6 +1481,38 @@ input.live-price-panel {
   overflow-x: auto;
 }
 
+.add-trade-table table {
+  min-width: 1180px;
+}
+
+.add-trade-table th,
+.add-trade-table td {
+  padding: 0.65rem 0.45rem;
+  vertical-align: top;
+}
+
+.add-trade-table input,
+.add-trade-table select {
+  min-width: 8.25rem;
+  min-height: 2.65rem;
+  padding: 0.58rem 0.65rem;
+  font-size: 0.95rem;
+}
+
+.calc-mode-row {
+  align-items: end;
+  margin: 1rem 0;
+}
+
+.calc-mode-row label {
+  min-width: 11rem;
+}
+
+.calc-mode-row .price-source {
+  align-self: center;
+  margin: 0;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
