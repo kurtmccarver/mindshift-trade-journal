@@ -14,6 +14,7 @@
   let newColumn = '';
   let notice = '';
   let confirmOpen = false;
+  let draftSaveTimer;
 
   $: filteredTrades = data.trades.filter((trade) => matchesFilters(trade, pairFilter, sideFilter, fromDate, toDate));
   $: allFilteredSelected = filteredTrades.length > 0 && filteredTrades.every((trade) => selectedIds.includes(trade.id));
@@ -102,6 +103,65 @@
     refresh();
   }
 
+  function createId() {
+    if (crypto.randomUUID) return crypto.randomUUID();
+    return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  }
+
+  function getRiskAmount(settings = {}) {
+    return (Number(settings.capital) || 0) * ((Number(settings.riskPercent) || 0) / 100);
+  }
+
+  function createEmptyTrade() {
+    return {
+      id: createId(),
+      date: new Date().toISOString().slice(0, 10),
+      symbol: 'MANUAL',
+      direction: 'long',
+      measurementMode: 'points',
+      entry: 0,
+      exitPrice: 0,
+      stopPrice: 0,
+      takeProfit: 0,
+      takeProfit1: 0,
+      takeProfit2: 0,
+      slPoints: 0,
+      tpPoints: 0,
+      tp1Points: 0,
+      tp2Points: 0,
+      rawSl: 0,
+      rawTp: 0,
+      rawTp1: 0,
+      rawTp2: 0,
+      pointValue: Number(data.settings?.pointValue) || 1,
+      riskAmount: getRiskAmount(data.settings),
+      lotSize: 0,
+      rr: 0,
+      estimatedGain: 0,
+      result: 'open',
+      pnl: null,
+      notes: '',
+      customFields: Object.fromEntries((data.customColumns || []).map((column) => [column.key, '']))
+    };
+  }
+
+  function addRow() {
+    const next = structuredClone(data);
+    const trade = createEmptyTrade();
+    next.trades = [trade, ...(next.trades || [])];
+    saveJournalData(next);
+    data = next;
+    summary = summarizeJournal(next);
+    pairFilter = '';
+    sideFilter = 'all';
+    fromDate = '';
+    toDate = '';
+    notice = 'Row added.';
+    setTimeout(() => {
+      notice = '';
+    }, 2200);
+  }
+
   function updateTradeCell(tradeId, field, value) {
     const next = structuredClone(data);
     const trade = next.trades.find((item) => item.id === tradeId);
@@ -146,6 +206,56 @@
     saveJournalData(next);
     data = next;
     summary = summarizeJournal(next);
+  }
+
+  function applyTradeValue(trade, field, value) {
+    if (field.startsWith('custom:')) {
+      const key = field.slice('custom:'.length);
+      trade.customFields = { ...(trade.customFields || {}), [key]: value.trim() };
+    } else if (field === 'date') {
+      trade.date = value.trim() || trade.date;
+    } else if (field === 'symbol') {
+      trade.symbol = value.trim().toUpperCase() || 'MANUAL';
+    } else if (field === 'direction') {
+      trade.direction = value === 'short' ? 'short' : 'long';
+    } else if (field === 'entry' || field === 'exitPrice') {
+      trade[field] = parseNumber(value);
+    } else if (field === 'slTp') {
+      const [sl = 0, tp1 = 0, tp2 = 0] = value.split('/').map(parseNumber);
+      trade.slPoints = sl;
+      trade.tp1Points = tp1;
+      trade.tp2Points = tp2;
+      trade.tpPoints = tp1 || tp2 || 0;
+      trade.rawSl = sl;
+      trade.rawTp1 = tp1;
+      trade.rawTp2 = tp2;
+      trade.rawTp = trade.tpPoints;
+      if (trade.measurementMode === 'price') {
+        trade.stopPrice = sl;
+        trade.takeProfit1 = tp1;
+        trade.takeProfit2 = tp2;
+      }
+    } else if (field === 'signalBy' || field === 'notes') {
+      trade[field] = value.trim();
+    } else if (field === 'pnl') {
+      trade.pnl = parseNumber(value);
+      trade.manualPnl = true;
+    } else if (field === 'result') {
+      trade.result = ['open', 'win', 'loss', 'breakeven'].includes(value) ? value : 'open';
+    }
+  }
+
+  function saveCellDraft(event, tradeId, field) {
+    clearTimeout(draftSaveTimer);
+    const value = event.currentTarget.textContent || '';
+    draftSaveTimer = setTimeout(() => {
+      const next = structuredClone(data);
+      const trade = next.trades.find((item) => item.id === tradeId);
+      if (!trade) return;
+      applyTradeValue(trade, field, value);
+      recalculateTrade(trade, next.settings);
+      saveJournalData(next, { notify: false });
+    }, 180);
   }
 
   function recalculateTrade(trade, settings = {}) {
@@ -265,6 +375,7 @@
       <p>03 - all trades</p>
       <div class="section-actions">
         {#if selectedFilteredIds.length}<span class="status-chip is-active">{selectedFilteredIds.length} selected</span>{/if}
+        <button class="primary-button compact-button" type="button" on:click={addRow}>add row</button>
         <button class="ghost-button" type="button" on:click={toggleAllFiltered} disabled={!filteredTrades.length}>
           {allFilteredSelected ? 'clear selected' : 'select all'}
         </button>
@@ -309,17 +420,17 @@
                     <span></span>
                   </label>
                 </td>
-                <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.date || ''} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'date')}>{date(trade.date)}</span></td>
-                <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.symbol || ''} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'symbol')}>{trade.symbol}</span></td>
+                <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.date || ''} on:input={(event) => saveCellDraft(event, trade.id, 'date')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'date')}>{date(trade.date)}</span></td>
+                <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.symbol || ''} on:input={(event) => saveCellDraft(event, trade.id, 'symbol')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'symbol')}>{trade.symbol}</span></td>
                 <td>
                   <select class="table-select" value={trade.direction || 'long'} on:change={(event) => updateTradeCell(trade.id, 'direction', event.currentTarget.value)}>
                     <option value="long">Long</option>
                     <option value="short">Short</option>
                   </select>
                 </td>
-                <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.entry || ''} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'entry')}>{number(trade.entry)}</span></td>
-                <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.exitPrice || ''} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'exitPrice')}>{trade.exitPrice ? number(trade.exitPrice) : ''}</span></td>
-                <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={slTp(trade)} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'slTp')}>{slTp(trade)}</span></td>
+                <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.entry || ''} on:input={(event) => saveCellDraft(event, trade.id, 'entry')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'entry')}>{number(trade.entry)}</span></td>
+                <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.exitPrice || ''} on:input={(event) => saveCellDraft(event, trade.id, 'exitPrice')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'exitPrice')}>{trade.exitPrice ? number(trade.exitPrice) : ''}</span></td>
+                <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={slTp(trade)} on:input={(event) => saveCellDraft(event, trade.id, 'slTp')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'slTp')}>{slTp(trade)}</span></td>
                 <td>{Number(trade.lotSize || 0).toFixed(2)}</td>
                 <td>{Number(trade.rr || 0).toFixed(2)}R</td>
                 <td>
@@ -330,10 +441,10 @@
                     <option value="breakeven">Breakeven</option>
                   </select>
                 </td>
-                <td><span class={`editable-cell ${pnlTone(getTradePnl(trade))}`} contenteditable="true" role="textbox" tabindex="0" data-original-value={getTradePnl(trade)} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'pnl')}>{money(getTradePnl(trade))}</span></td>
-                <td class="notes-cell" title={trade.notes || ''}><span class="editable-cell notes-editor" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.notes || ''} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'notes')}>{trade.notes || ''}</span></td>
+                <td><span class={`editable-cell ${pnlTone(getTradePnl(trade))}`} contenteditable="true" role="textbox" tabindex="0" data-original-value={getTradePnl(trade)} on:input={(event) => saveCellDraft(event, trade.id, 'pnl')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'pnl')}>{money(getTradePnl(trade))}</span></td>
+                <td class="notes-cell" title={trade.notes || ''}><span class="editable-cell notes-editor" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.notes || ''} on:input={(event) => saveCellDraft(event, trade.id, 'notes')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'notes')}>{trade.notes || ''}</span></td>
                 {#each data.customColumns as column}
-                  <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.customFields?.[column.key] || ''} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, `custom:${column.key}`)}>{trade.customFields?.[column.key] || ''}</span></td>
+                  <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.customFields?.[column.key] || ''} on:input={(event) => saveCellDraft(event, trade.id, `custom:${column.key}`)} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, `custom:${column.key}`)}>{trade.customFields?.[column.key] || ''}</span></td>
                 {/each}
               </tr>
             {/each}

@@ -1149,6 +1149,13 @@ input.live-price-panel {
   cursor: pointer;
 }
 
+.compact-button {
+  min-height: 2.25rem;
+  align-self: center;
+  padding: 0.55rem 0.8rem;
+  font-size: 11px;
+}
+
 .ghost-button,
 .icon-button,
 .select-trigger,

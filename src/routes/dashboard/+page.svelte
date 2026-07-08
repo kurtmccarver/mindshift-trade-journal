@@ -113,7 +113,7 @@
     };
   }
 
-  function savePersonalTarget(field, value) {
+  function savePersonalTarget(field, value, options = {}) {
     const parsed = Number(String(value || '').replace(/[^0-9.-]/g, ''));
     if (!Number.isFinite(parsed)) return;
     const next = {
@@ -123,13 +123,19 @@
         [field]: parsed
       }
     };
-    saveJournalData(next);
-    data = next;
-    summary = summarizeJournal(next);
+    saveJournalData(next, { notify: options.refresh !== false });
+    if (options.refresh !== false) {
+      data = next;
+      summary = summarizeJournal(next);
+    }
   }
 
   function commitPersonalTarget(event, field) {
     savePersonalTarget(field, event.currentTarget.textContent || '');
+  }
+
+  function inputPersonalTarget(event, field) {
+    savePersonalTarget(field, event.currentTarget.textContent || '', { refresh: false });
   }
 
   function handleEditableKey(event) {
@@ -195,10 +201,10 @@
       <p>02 - personal targets</p>
     </div>
     <div class="stats-grid dashboard-stats">
-      <div><span>capital</span><span class="editable-stat" contenteditable="true" role="textbox" tabindex="0" data-original-value={summary.capital} on:keydown={handleEditableKey} on:blur={(event) => commitPersonalTarget(event, 'capital')}>{money(summary.capital)}</span></div>
-      <div><span>risk %</span><span class="editable-stat" contenteditable="true" role="textbox" tabindex="0" data-original-value={data.settings.riskPercent || 0} on:keydown={handleEditableKey} on:blur={(event) => commitPersonalTarget(event, 'riskPercent')}>{Number(data.settings.riskPercent || 0)}%</span></div>
+      <div><span>capital</span><span class="editable-stat" contenteditable="true" role="textbox" tabindex="0" data-original-value={summary.capital} on:input={(event) => inputPersonalTarget(event, 'capital')} on:keydown={handleEditableKey} on:blur={(event) => commitPersonalTarget(event, 'capital')}>{money(summary.capital)}</span></div>
+      <div><span>risk %</span><span class="editable-stat" contenteditable="true" role="textbox" tabindex="0" data-original-value={data.settings.riskPercent || 0} on:input={(event) => inputPersonalTarget(event, 'riskPercent')} on:keydown={handleEditableKey} on:blur={(event) => commitPersonalTarget(event, 'riskPercent')}>{Number(data.settings.riskPercent || 0)}%</span></div>
       <div><span>risk money</span><strong class="editable-stat is-computed">{money(personalRiskMoney)}</strong></div>
-      <div><span>target profit</span><span class="editable-stat" contenteditable="true" role="textbox" tabindex="0" data-original-value={personalTargetAmount} on:keydown={handleEditableKey} on:blur={(event) => commitPersonalTarget(event, 'targetProfitMoney')}>{money(personalTargetAmount)}</span></div>
+      <div><span>target profit</span><span class="editable-stat" contenteditable="true" role="textbox" tabindex="0" data-original-value={personalTargetAmount} on:input={(event) => inputPersonalTarget(event, 'targetProfitMoney')} on:keydown={handleEditableKey} on:blur={(event) => commitPersonalTarget(event, 'targetProfitMoney')}>{money(personalTargetAmount)}</span></div>
     </div>
   </section>
 

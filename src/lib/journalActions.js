@@ -1,8 +1,10 @@
 import { LEGACY_KEY, STORAGE_KEY, getEmptyJournal, loadJournalData } from './journalData.js';
 
-export function saveJournalData(data) {
+export function saveJournalData(data, options = {}) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  window.dispatchEvent(new CustomEvent('journal-data-change', { detail: data }));
+  if (options.notify !== false) {
+    window.dispatchEvent(new CustomEvent('journal-data-change', { detail: data }));
+  }
 }
 
 export function resetJournalData() {
