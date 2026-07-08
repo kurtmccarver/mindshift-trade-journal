@@ -1,5 +1,5 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
+  import { createEventDispatcher, tick } from 'svelte';
 
   export let value = '';
   export let options = [];
@@ -8,9 +8,28 @@
 
   let open = false;
   let shell;
+  let menuStyle = '';
   const dispatch = createEventDispatcher();
 
   $: selected = options.find((option) => option.value === value) || options[0] || { label: '', value: '' };
+
+  async function toggleOpen() {
+    open = !open;
+    if (open) {
+      await tick();
+      positionMenu();
+    }
+  }
+
+  function positionMenu() {
+    if (!shell) return;
+    const rect = shell.getBoundingClientRect();
+    const gap = 6;
+    const menuHeight = Math.min(240, options.length * 44 + 14);
+    const opensUp = rect.bottom + gap + menuHeight > window.innerHeight && rect.top > menuHeight;
+    const top = opensUp ? rect.top - menuHeight - gap : rect.bottom + gap;
+    menuStyle = `position: fixed; left: ${rect.left}px; top: ${Math.max(8, top)}px; width: ${rect.width}px;`;
+  }
 
   function choose(nextValue) {
     value = nextValue;
@@ -25,15 +44,19 @@
   function handleKeydown(event) {
     if (event.key === 'Escape') open = false;
   }
+
+  function handleViewportChange() {
+    if (open) positionMenu();
+  }
 </script>
 
-<svelte:window on:click={handleDocumentClick} on:keydown={handleKeydown} />
+<svelte:window on:click={handleDocumentClick} on:keydown={handleKeydown} on:scroll={handleViewportChange} on:resize={handleViewportChange} />
 
 <div bind:this={shell} class={`select-shell ${open ? 'is-open' : ''} ${tone ? `side-tone-${tone}` : ''}`}>
-  <button class="select-trigger" type="button" aria-label={ariaLabel} aria-haspopup="listbox" aria-expanded={open} on:click={() => (open = !open)}>
+  <button class="select-trigger" type="button" aria-label={ariaLabel} aria-haspopup="listbox" aria-expanded={open} on:click={toggleOpen}>
     {selected.label}
   </button>
-  <div class="select-menu" role="listbox" hidden={!open}>
+  <div class="select-menu" class:is-fixed={open} style={menuStyle} role="listbox" hidden={!open}>
     {#each options as option}
       <button
         class="select-option"

@@ -153,57 +153,78 @@
       <p>01 - trade input</p>
       {#if status}<span class="status-chip is-active">{status}</span>{/if}
     </div>
-    <div class="table-actions add-trade-actions">
-      <button class="primary-button" type="button" on:click={addTrade}>add trade</button>
-    </div>
-    <div class="card add-trade-card">
-      <div class="journal-table-wrap add-trade-table">
-        <table>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Pair</th>
-              <th>Side</th>
-              <th>Entry</th>
-              <th>Exit</th>
-              <th>SL / TP1 / TP2</th>
-              <th>Lots</th>
-              <th>RR</th>
-              <th>Result</th>
-              <th>PnL</th>
-              <th>Notes</th>
-              {#each data.customColumns || [] as column}
-                <th>{column.label}</th>
-              {/each}
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><input bind:value={trade.date} type="date" /></td>
-              <td><input bind:value={trade.symbol} type="text" maxlength="32" placeholder="BTCUSDT" /></td>
-              <td><CustomSelect bind:value={trade.direction} options={sideOptions} tone={trade.direction} ariaLabel="Trade side" /></td>
-              <td><input bind:value={trade.entry} type="number" min="0" step="0.00001" /></td>
-              <td><input bind:value={trade.exitPrice} type="number" min="0" step="0.00001" /></td>
-              <td>
-                <div class="inline-price-stack">
-                  <input aria-label="SL price" bind:value={trade.stopPrice} type="number" min="0" step="0.00001" />
-                  <span>/</span>
-                  <input aria-label="TP1 price" bind:value={trade.takeProfit1} type="number" min="0" step="0.00001" />
-                  <span>/</span>
-                  <input aria-label="TP2 price" bind:value={trade.takeProfit2} type="number" min="0" step="0.00001" />
-                </div>
-              </td>
-              <td class="readonly-cell">{lotSize.toFixed(2)}</td>
-              <td class="readonly-cell">{rr.toFixed(2)}R</td>
-              <td><CustomSelect bind:value={trade.result} options={resultOptions} ariaLabel="Trade result" /></td>
-              <td><input bind:value={trade.pnl} type="number" step="0.01" placeholder="0" /></td>
-              <td><textarea bind:value={trade.notes} rows="1" placeholder="Setup, emotion, execution..."></textarea></td>
-              {#each data.customColumns || [] as column}
-                <td><input bind:value={customFields[column.key]} type="text" maxlength="120" placeholder="0" /></td>
-              {/each}
-            </tr>
-          </tbody>
-        </table>
+    <div class="card add-trade-card add-trade-form-card">
+      <div class="add-trade-form">
+        <label class="field date-field">
+          <span>date</span>
+          <input bind:value={trade.date} type="date" />
+        </label>
+
+        <div class="form-row two-cols">
+          <label class="field">
+            <span>pair</span>
+            <input bind:value={trade.symbol} type="text" maxlength="32" placeholder="BTCUSDT" />
+          </label>
+          <label class="field">
+            <span>side</span>
+            <CustomSelect bind:value={trade.direction} options={sideOptions} tone={trade.direction} ariaLabel="Trade side" />
+          </label>
+        </div>
+
+        <div class="form-row price-row">
+          <label class="field">
+            <span>entry</span>
+            <input bind:value={trade.entry} type="number" min="0" step="0.00001" />
+          </label>
+          <label class="field">
+            <span>sl</span>
+            <input bind:value={trade.stopPrice} type="number" min="0" step="0.00001" />
+          </label>
+          <label class="field">
+            <span>tp1</span>
+            <input bind:value={trade.takeProfit1} type="number" min="0" step="0.00001" />
+          </label>
+          <label class="field">
+            <span>tp2</span>
+            <input bind:value={trade.takeProfit2} type="number" min="0" step="0.00001" />
+          </label>
+          <label class="field">
+            <span>exit</span>
+            <input bind:value={trade.exitPrice} type="number" min="0" step="0.00001" />
+          </label>
+        </div>
+
+        <label class="field result-field">
+          <span>result</span>
+          <CustomSelect bind:value={trade.result} options={resultOptions} ariaLabel="Trade result" />
+        </label>
+
+        {#if data.customColumns?.length}
+          <div class="form-row custom-fields-row">
+            {#each data.customColumns || [] as column}
+              <label class="field">
+                <span>{column.label}</span>
+                <input bind:value={customFields[column.key]} type="text" maxlength="120" placeholder="0" />
+              </label>
+            {/each}
+          </div>
+        {/if}
+
+        <label class="field notes-field">
+          <span>notes</span>
+          <textarea bind:value={trade.notes} rows="4" placeholder="Setup, emotion, execution..."></textarea>
+        </label>
+
+        <div class="stats-grid add-trade-stats">
+          <div><span>lot</span><strong>{lotSize.toFixed(2)}</strong></div>
+          <div><span>rr</span><strong>{rr.toFixed(2)}R</strong></div>
+          <div class="pnl-entry">
+            <span>pnl</span>
+            <input bind:value={trade.pnl} type="number" step="0.01" placeholder="0" />
+          </div>
+        </div>
+
+        <button class="primary-button wide" type="button" on:click={addTrade}>add trade</button>
       </div>
     </div>
   </section>
