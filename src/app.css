@@ -1482,29 +1482,46 @@ input.live-price-panel {
 }
 
 .add-trade-table table {
-  min-width: 1160px;
+  min-width: 1040px;
 }
 
 .add-trade-table th,
 .add-trade-table td {
-  padding: 0.65rem 0.45rem;
-  vertical-align: top;
+  padding: 0.8rem 0.55rem;
+  vertical-align: middle;
 }
 
 .add-trade-table input,
-.add-trade-table select,
 .add-trade-table textarea {
-  min-width: 6.75rem;
-  min-height: 2.65rem;
-  padding: 0.58rem 0.65rem;
-  font-size: 0.95rem;
+  min-width: 4.5rem;
+  min-height: 2.2rem;
+  border-color: transparent;
+  background: transparent;
+  padding: 0.24rem 0.28rem;
+  color: var(--ink);
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 13px;
+  font-weight: 800;
 }
 
 .add-trade-table textarea {
-  width: 16rem;
+  width: 15rem;
   resize: vertical;
   white-space: normal;
   overflow-x: hidden;
+  line-height: 1.45;
+}
+
+.add-trade-table input:hover,
+.add-trade-table textarea:hover,
+.add-trade-table input:focus,
+.add-trade-table textarea:focus {
+  border-color: var(--secondary);
+  background: var(--background);
+}
+
+.add-trade-card {
+  padding-bottom: 3.35rem;
 }
 
 .add-trade-actions {
@@ -1515,13 +1532,13 @@ input.live-price-panel {
 
 .inline-price-stack {
   display: grid;
-  grid-template-columns: minmax(5.5rem, 1fr) auto minmax(5.5rem, 1fr) auto minmax(5.5rem, 1fr);
+  grid-template-columns: minmax(3.5rem, 1fr) auto minmax(3.5rem, 1fr) auto minmax(3.5rem, 1fr);
   align-items: center;
   gap: 0.35rem;
 }
 
 .inline-price-stack input {
-  min-width: 5.5rem;
+  min-width: 3.5rem;
 }
 
 .readonly-cell {

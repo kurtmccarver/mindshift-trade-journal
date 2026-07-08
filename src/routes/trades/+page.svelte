@@ -1,6 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import AppSidebar from '$lib/AppSidebar.svelte';
+  import CustomSelect from '$lib/CustomSelect.svelte';
   import { addJournalColumn, deleteTradesById, normalizeColumnLabel, saveJournalData } from '$lib/journalActions.js';
   import { date, getTradePnl, loadJournalData, money, number, summarizeJournal } from '$lib/journalData.js';
 
@@ -15,6 +16,20 @@
   let notice = '';
   let confirmOpen = false;
   let draftSaveTimer;
+  const sideOptions = [
+    { value: 'long', label: 'Long' },
+    { value: 'short', label: 'Short' }
+  ];
+  const sideFilterOptions = [
+    { value: 'all', label: 'All sides' },
+    ...sideOptions
+  ];
+  const resultOptions = [
+    { value: 'open', label: 'Open' },
+    { value: 'win', label: 'Win' },
+    { value: 'loss', label: 'Loss' },
+    { value: 'breakeven', label: 'Breakeven' }
+  ];
 
   $: filteredTrades = data.trades.filter((trade) => matchesFilters(trade, pairFilter, sideFilter, fromDate, toDate));
   $: allFilteredSelected = filteredTrades.length > 0 && filteredTrades.every((trade) => selectedIds.includes(trade.id));
@@ -348,11 +363,7 @@
         <label><span>filter by pair</span><input bind:value={pairFilter} type="search" placeholder="BTCUSDT, EURUSD, AAPL..." /></label>
         <label>
           <span>filter by side</span>
-          <select bind:value={sideFilter}>
-            <option value="all">All sides</option>
-            <option value="long">Long</option>
-            <option value="short">Short</option>
-          </select>
+          <CustomSelect bind:value={sideFilter} options={sideFilterOptions} ariaLabel="Filter by side" />
         </label>
         <label><span>from date</span><input bind:value={fromDate} type="date" /></label>
         <label><span>to date</span><input bind:value={toDate} type="date" /></label>
@@ -425,10 +436,7 @@
                 <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.date || ''} on:input={(event) => saveCellDraft(event, trade.id, 'date')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'date')}>{date(trade.date)}</span></td>
                 <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.symbol || ''} on:input={(event) => saveCellDraft(event, trade.id, 'symbol')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'symbol')}>{trade.symbol}</span></td>
                 <td>
-                  <select class="table-select" value={trade.direction || 'long'} on:change={(event) => updateTradeCell(trade.id, 'direction', event.currentTarget.value)}>
-                    <option value="long">Long</option>
-                    <option value="short">Short</option>
-                  </select>
+                  <CustomSelect value={trade.direction || 'long'} options={sideOptions} tone={trade.direction || 'long'} ariaLabel="Trade side" on:change={(event) => updateTradeCell(trade.id, 'direction', event.detail)} />
                 </td>
                 <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.entry || ''} on:input={(event) => saveCellDraft(event, trade.id, 'entry')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'entry')}>{number(trade.entry)}</span></td>
                 <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.exitPrice || ''} on:input={(event) => saveCellDraft(event, trade.id, 'exitPrice')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'exitPrice')}>{trade.exitPrice ? number(trade.exitPrice) : ''}</span></td>
@@ -436,12 +444,7 @@
                 <td>{Number(trade.lotSize || 0).toFixed(2)}</td>
                 <td>{Number(trade.rr || 0).toFixed(2)}R</td>
                 <td>
-                  <select class="table-select" value={trade.result || 'open'} on:change={(event) => updateTradeCell(trade.id, 'result', event.currentTarget.value)}>
-                    <option value="open">Open</option>
-                    <option value="win">Win</option>
-                    <option value="loss">Loss</option>
-                    <option value="breakeven">Breakeven</option>
-                  </select>
+                  <CustomSelect value={trade.result || 'open'} options={resultOptions} ariaLabel="Trade result" on:change={(event) => updateTradeCell(trade.id, 'result', event.detail)} />
                 </td>
                 <td><span class={`editable-cell ${pnlTone(getTradePnl(trade))}`} contenteditable="true" role="textbox" tabindex="0" data-original-value={getTradePnl(trade)} on:input={(event) => saveCellDraft(event, trade.id, 'pnl')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'pnl')}>{money(getTradePnl(trade))}</span></td>
                 <td class="notes-cell" title={trade.notes || ''}><span class="editable-cell notes-editor" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.notes || ''} on:input={(event) => saveCellDraft(event, trade.id, 'notes')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'notes')}>{trade.notes || ''}</span></td>

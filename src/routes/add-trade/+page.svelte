@@ -1,6 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import AppSidebar from '$lib/AppSidebar.svelte';
+  import CustomSelect from '$lib/CustomSelect.svelte';
   import { saveJournalData } from '$lib/journalActions.js';
   import { loadJournalData } from '$lib/journalData.js';
 
@@ -9,6 +10,16 @@
 
   let trade = zeroTrade();
   let customFields = {};
+  const sideOptions = [
+    { value: 'long', label: 'Long' },
+    { value: 'short', label: 'Short' }
+  ];
+  const resultOptions = [
+    { value: 'open', label: 'Open' },
+    { value: 'win', label: 'Win' },
+    { value: 'loss', label: 'Loss' },
+    { value: 'breakeven', label: 'Breakeven' }
+  ];
 
   $: riskAmount = (Number(data.settings?.capital) || 0) * ((Number(data.settings?.riskPercent) || 0) / 100);
   $: savedStopPrice = parseNumber(trade.stopPrice);
@@ -18,11 +29,12 @@
   $: tp1Distance = Math.abs(savedTakeProfit1 - parseNumber(trade.entry));
   $: tp2Distance = Math.abs(savedTakeProfit2 - parseNumber(trade.entry));
   $: targetDistance = tp1Distance || tp2Distance || 0;
-  $: lotSize = slDistance > 0 && Number(trade.pointValue) > 0 ? riskAmount / (slDistance * Number(trade.pointValue)) : 0;
+  $: effectivePointValue = parseNumber(trade.pointValue) || Number(data.settings?.pointValue) || 1;
+  $: lotSize = slDistance > 0 && effectivePointValue > 0 ? riskAmount / (slDistance * effectivePointValue) : 0;
   $: rr = slDistance > 0 && targetDistance > 0 ? targetDistance / slDistance : 0;
   $: estimatedGain = riskAmount * rr;
   $: autoPnl = Number(trade.exitPrice) > 0 && Number(trade.entry) > 0
-    ? (trade.direction === 'short' ? Number(trade.entry) - Number(trade.exitPrice) : Number(trade.exitPrice) - Number(trade.entry)) * lotSize * Number(trade.pointValue)
+    ? (trade.direction === 'short' ? Number(trade.entry) - Number(trade.exitPrice) : Number(trade.exitPrice) - Number(trade.entry)) * lotSize * effectivePointValue
     : 0;
 
   onMount(() => {
@@ -45,7 +57,7 @@
       slPoints: 0,
       tp1Points: 0,
       tp2Points: 0,
-      pointValue: 1,
+      pointValue: '',
       result: 'open',
       pnl: '',
       notes: ''
@@ -96,7 +108,7 @@
       rawTp: savedTakeProfit1 || savedTakeProfit2,
       rawTp1: savedTakeProfit1,
       rawTp2: savedTakeProfit2,
-      pointValue: parseNumber(trade.pointValue),
+      pointValue: effectivePointValue,
       riskAmount,
       lotSize,
       rr,
@@ -150,7 +162,7 @@
           <thead>
             <tr>
               <th>Date</th>
-              <th>Token/Pair</th>
+              <th>Pair</th>
               <th>Side</th>
               <th>Entry</th>
               <th>Exit</th>
@@ -169,12 +181,7 @@
             <tr>
               <td><input bind:value={trade.date} type="date" /></td>
               <td><input bind:value={trade.symbol} type="text" maxlength="32" placeholder="BTCUSDT" /></td>
-              <td>
-                <select bind:value={trade.direction} class:side-select-long={trade.direction === 'long'} class:side-select-short={trade.direction === 'short'}>
-                  <option value="long">Long</option>
-                  <option value="short">Short</option>
-                </select>
-              </td>
+              <td><CustomSelect bind:value={trade.direction} options={sideOptions} tone={trade.direction} ariaLabel="Trade side" /></td>
               <td><input bind:value={trade.entry} type="number" min="0" step="0.00001" /></td>
               <td><input bind:value={trade.exitPrice} type="number" min="0" step="0.00001" /></td>
               <td>
@@ -188,14 +195,7 @@
               </td>
               <td class="readonly-cell">{lotSize.toFixed(2)}</td>
               <td class="readonly-cell">{rr.toFixed(2)}R</td>
-              <td>
-                <select bind:value={trade.result}>
-                  <option value="open">Open</option>
-                  <option value="win">Win</option>
-                  <option value="loss">Loss</option>
-                  <option value="breakeven">Breakeven</option>
-                </select>
-              </td>
+              <td><CustomSelect bind:value={trade.result} options={resultOptions} ariaLabel="Trade result" /></td>
               <td><input bind:value={trade.pnl} type="number" step="0.01" placeholder="0" /></td>
               <td><textarea bind:value={trade.notes} rows="1" placeholder="Setup, emotion, execution..."></textarea></td>
               {#each data.customColumns || [] as column}
