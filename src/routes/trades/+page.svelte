@@ -372,9 +372,11 @@
 
   <section id="all-trades" class="section-enter">
     <div class="section-heading">
-      <p>03 - all trades</p>
+      <p class="heading-with-chip">
+        <span>03 - all trades</span>
+        {#if selectedFilteredIds.length}<span class="selected-count">{selectedFilteredIds.length} selected</span>{/if}
+      </p>
       <div class="section-actions">
-        {#if selectedFilteredIds.length}<span class="status-chip is-active">{selectedFilteredIds.length} selected</span>{/if}
         <button class="primary-button compact-button" type="button" on:click={addRow}>add trade</button>
         <button class="ghost-button" type="button" on:click={toggleAllFiltered} disabled={!filteredTrades.length}>
           {allFilteredSelected ? 'clear selected' : 'select all'}

@@ -554,8 +554,29 @@ section + section {
 .section-actions {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   justify-content: flex-end;
   gap: 0.5rem;
+}
+
+.heading-with-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.selected-count {
+  border: 1px solid var(--secondary);
+  border-radius: 999px;
+  background: var(--secondary-soft);
+  color: var(--secondary);
+  padding: 0.14rem 0.5rem;
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  line-height: 1.4;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .card {
@@ -1153,6 +1174,14 @@ input.live-price-panel {
   min-height: 2.25rem;
   align-self: center;
   padding: 0.55rem 0.8rem;
+  font-size: 11px;
+}
+
+.section-actions .ghost-button,
+.section-actions .danger-button,
+.section-actions .primary-button {
+  min-height: 2.5rem;
+  padding: 0.58rem 0.85rem;
   font-size: 11px;
 }
 
