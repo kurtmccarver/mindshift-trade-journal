@@ -1,0 +1,36 @@
+{
+  "name": "mindshift-trade-journal",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A local-first SvelteKit trade journal, lot-size calculator, dashboard, and feedback system for MindShift.",
+  "license": "MIT",
+  "author": "Kurt McCarver",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kurtmccarver/mindshift-trade-journal.git"
+  },
+  "type": "module",
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json"
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-vercel": "^6.3.4",
+    "@sveltejs/kit": "^2.69.1",
+    "@sveltejs/vite-plugin-svelte": "^5.1.1",
+    "svelte": "^5.34.0",
+    "svelte-check": "^4.2.1",
+    "vite": "^6.3.5"
+  },
+  "overrides": {
+    "cookie": "0.7.2"
+  },
+  "dependencies": {
+    "pretty-checkbox": "^3.0.3"
+  }
+}
