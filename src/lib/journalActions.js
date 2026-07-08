@@ -165,7 +165,7 @@ export function importJournalCsv(text) {
       return {
         id: createId(),
         date: item.date || new Date().toISOString().slice(0, 10),
-        symbol: (item.symbol || 'MANUAL').toUpperCase(),
+        symbol: (item.symbol || '0').toUpperCase(),
         direction,
         measurementMode: item.measurementMode || 'points',
         entry,

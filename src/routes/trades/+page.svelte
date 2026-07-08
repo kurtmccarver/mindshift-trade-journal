@@ -115,8 +115,8 @@
   function createEmptyTrade() {
     return {
       id: createId(),
-      date: new Date().toISOString().slice(0, 10),
-      symbol: 'MANUAL',
+      date: '0',
+      symbol: '0',
       direction: 'long',
       measurementMode: 'points',
       entry: 0,
@@ -133,8 +133,8 @@
       rawTp: 0,
       rawTp1: 0,
       rawTp2: 0,
-      pointValue: Number(data.settings?.pointValue) || 1,
-      riskAmount: getRiskAmount(data.settings),
+      pointValue: 0,
+      riskAmount: 0,
       lotSize: 0,
       rr: 0,
       estimatedGain: 0,
@@ -156,7 +156,7 @@
     sideFilter = 'all';
     fromDate = '';
     toDate = '';
-    notice = 'Row added.';
+    notice = 'Trade added.';
     setTimeout(() => {
       notice = '';
     }, 2200);
@@ -173,7 +173,7 @@
     } else if (field === 'date') {
       trade.date = value.trim() || trade.date;
     } else if (field === 'symbol') {
-      trade.symbol = value.trim().toUpperCase() || 'MANUAL';
+      trade.symbol = value.trim().toUpperCase() || '0';
     } else if (field === 'direction') {
       trade.direction = value === 'short' ? 'short' : 'long';
     } else if (field === 'entry' || field === 'exitPrice') {
@@ -215,7 +215,7 @@
     } else if (field === 'date') {
       trade.date = value.trim() || trade.date;
     } else if (field === 'symbol') {
-      trade.symbol = value.trim().toUpperCase() || 'MANUAL';
+      trade.symbol = value.trim().toUpperCase() || '0';
     } else if (field === 'direction') {
       trade.direction = value === 'short' ? 'short' : 'long';
     } else if (field === 'entry' || field === 'exitPrice') {
@@ -375,7 +375,7 @@
       <p>03 - all trades</p>
       <div class="section-actions">
         {#if selectedFilteredIds.length}<span class="status-chip is-active">{selectedFilteredIds.length} selected</span>{/if}
-        <button class="primary-button compact-button" type="button" on:click={addRow}>add row</button>
+        <button class="primary-button compact-button" type="button" on:click={addRow}>add trade</button>
         <button class="ghost-button" type="button" on:click={toggleAllFiltered} disabled={!filteredTrades.length}>
           {allFilteredSelected ? 'clear selected' : 'select all'}
         </button>

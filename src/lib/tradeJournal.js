@@ -377,7 +377,7 @@ function renderTrades() {
       : `${formatNumber(trade.slPoints)} / ${formatOptionalNumber(trade.tp1Points || trade.tpPoints)} / ${formatOptionalNumber(trade.tp2Points)}`;
     row.innerHTML = `
       <td>${editableCell(trade.id, "date", trade.date || new Date().toISOString().slice(0, 10))}</td>
-      <td>${editableCell(trade.id, "symbol", trade.symbol || "MANUAL")}</td>
+      <td>${editableCell(trade.id, "symbol", trade.symbol || "0")}</td>
       <td>${sideSelect(trade.id, trade.direction || "long")}</td>
       <td>${editableCell(trade.id, "entry", formatNumber(trade.entry))}</td>
       <td>${editableCell(trade.id, "exitPrice", trade.exitPrice ? formatNumber(trade.exitPrice) : "")}</td>
@@ -793,7 +793,7 @@ function buildTrade(id = createId()) {
   return {
     id,
     date: $("tradeDate").value || new Date().toISOString().slice(0, 10),
-    symbol: $("symbol").value.trim().toUpperCase() || "MANUAL",
+    symbol: $("symbol").value.trim().toUpperCase() || "0",
     direction: $("direction").value,
     measurementMode: calc.measurementMode,
     entry: calc.entry,
@@ -833,11 +833,10 @@ function readCustomFieldValues() {
 }
 
 function buildEmptyTrade() {
-  const pointValue = Number(state.settings.pointValue) || 1;
   return {
     id: createId(),
-    date: new Date().toISOString().slice(0, 10),
-    symbol: "MANUAL",
+    date: "0",
+    symbol: "0",
     direction: "long",
     measurementMode: "points",
     entry: 0,
@@ -855,7 +854,7 @@ function buildEmptyTrade() {
     rawTp: 0,
     rawTp1: 0,
     rawTp2: 0,
-    pointValue,
+    pointValue: 0,
     riskAmount: 0,
     lotSize: 0,
     rr: 0,
@@ -902,7 +901,7 @@ function applyCellValue(trade, field, value) {
   if (field === "date") {
     trade.date = normalizeDateInput(value) || trade.date;
   } else if (field === "symbol") {
-    trade.symbol = value.toUpperCase() || "MANUAL";
+    trade.symbol = value.toUpperCase() || "0";
   } else if (field === "entry") {
     trade.entry = parseEditableNumber(value);
   } else if (field === "exitPrice") {
@@ -1235,7 +1234,7 @@ async function importCsv(event) {
     return {
       id: createId(),
       date: item.date || new Date().toISOString().slice(0, 10),
-      symbol: (item.symbol || "MANUAL").toUpperCase(),
+      symbol: (item.symbol || "0").toUpperCase(),
       direction,
       measurementMode: item.measurementMode || "points",
       entry,

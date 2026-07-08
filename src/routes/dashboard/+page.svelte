@@ -28,7 +28,7 @@
   ];
   $: maxDistribution = Math.max(1, ...resultDistribution.map((item) => item.value));
   $: signalColumn = data.customColumns?.find((column) => /signal/i.test(column.label) || column.key === 'signal_by');
-  $: pairDistribution = buildCategoryDistribution(data.trades, (trade) => trade.symbol || 'MANUAL');
+  $: pairDistribution = buildCategoryDistribution(data.trades, (trade) => trade.symbol || '0');
   $: pairTotal = pairDistribution.reduce((sum, item) => sum + item.count, 0);
   $: pieSlices = buildPieSlices(pairDistribution, pairTotal);
   $: signalDistribution = signalColumn

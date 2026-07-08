@@ -239,7 +239,7 @@
   <section id="journal" class="section-enter">
     <div class="section-heading">
       <p>04 - journal</p>
-      <button class="ghost-button" id="addJournalRow" type="button">add row</button>
+      <button class="ghost-button" id="addJournalRow" type="button">add trade</button>
     </div>
     <div class="journal-table-wrap card">
       <table>

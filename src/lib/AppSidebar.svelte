@@ -5,6 +5,7 @@
   export let current = '/';
 
   const links = [
+    { href: '/add-trade', label: '00 - add trade', autoPinned: true },
     { href: '/', label: '01 - home' },
     { href: '/dashboard', label: '02 - dashboard' },
     { href: '/trades', label: '03 - trades' },
@@ -43,8 +44,10 @@
     if (appSettings.simpleMode && (link.href === '/#rules' || link.href === '/calculator')) return false;
     return true;
   });
-  $: pinnedLinks = visibleLinks.filter((link) => pinned.includes(link.href));
-  $: unpinnedLinks = visibleLinks.filter((link) => !pinned.includes(link.href));
+  $: autoPinnedLinks = visibleLinks.filter((link) => link.autoPinned);
+  $: userPinnedLinks = visibleLinks.filter((link) => !link.autoPinned && pinned.includes(link.href));
+  $: pinnedLinks = [...autoPinnedLinks, ...userPinnedLinks];
+  $: unpinnedLinks = visibleLinks.filter((link) => !link.autoPinned && !pinned.includes(link.href));
 
   function togglePin(href) {
     pinned = pinned.includes(href) ? pinned.filter((item) => item !== href) : [href, ...pinned].slice(0, 4);
@@ -128,7 +131,9 @@
         {#each pinnedLinks as link}
           <div class="nav-item" class:is-active={isActive(link.href)}>
             <a href={link.href}>{link.label}</a>
-            <button type="button" aria-label={`Unpin ${link.label}`} title="Unpin" on:click={() => togglePin(link.href)}>-</button>
+            {#if !link.autoPinned}
+              <button type="button" aria-label={`Unpin ${link.label}`} title="Unpin" on:click={() => togglePin(link.href)}>-</button>
+            {/if}
           </div>
         {/each}
       </div>
