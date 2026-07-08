@@ -1482,7 +1482,7 @@ input.live-price-panel {
 }
 
 .add-trade-table table {
-  min-width: 1180px;
+  min-width: 1160px;
 }
 
 .add-trade-table th,
@@ -1492,25 +1492,42 @@ input.live-price-panel {
 }
 
 .add-trade-table input,
-.add-trade-table select {
-  min-width: 8.25rem;
+.add-trade-table select,
+.add-trade-table textarea {
+  min-width: 6.75rem;
   min-height: 2.65rem;
   padding: 0.58rem 0.65rem;
   font-size: 0.95rem;
 }
 
-.calc-mode-row {
-  align-items: end;
-  margin: 1rem 0;
+.add-trade-table textarea {
+  width: 16rem;
+  resize: vertical;
+  white-space: normal;
+  overflow-x: hidden;
 }
 
-.calc-mode-row label {
-  min-width: 11rem;
+.add-trade-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.85rem;
 }
 
-.calc-mode-row .price-source {
-  align-self: center;
-  margin: 0;
+.inline-price-stack {
+  display: grid;
+  grid-template-columns: minmax(5.5rem, 1fr) auto minmax(5.5rem, 1fr) auto minmax(5.5rem, 1fr);
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.inline-price-stack input {
+  min-width: 5.5rem;
+}
+
+.readonly-cell {
+  font-family: var(--font-mono);
+  font-weight: 800;
+  white-space: nowrap;
 }
 
 table {
