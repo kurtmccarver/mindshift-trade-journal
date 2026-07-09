@@ -220,7 +220,9 @@ a {
   overflow-y: auto;
 }
 
-.sidebar-settings {
+.sidebar-settings-group {
+  display: grid;
+  gap: 0.75rem;
   margin-top: auto;
 }
 
@@ -664,7 +666,7 @@ textarea {
 input[readonly] {
   background: color-mix(in srgb, var(--secondary-soft) 34%, var(--gray-50));
   color: var(--ink);
-  cursor: not-allowed;
+  cursor: default;
 }
 
 input[type="search"]::-webkit-search-cancel-button,
@@ -1142,7 +1144,7 @@ input.live-price-panel {
 .settings-colors input[type="color"] {
   min-height: 3.1rem;
   padding: 0.3rem;
-  cursor: crosshair;
+  cursor: pointer;
 }
 
 .settings-colors input[type="color"]::-webkit-color-swatch-wrapper {
@@ -1203,7 +1205,7 @@ input.live-price-panel {
   padding: 0.68rem 0.9rem;
   font-size: 13px;
   font-weight: 600;
-  cursor: no-drop;
+  cursor: pointer;
   transition: transform 200ms ease, background-color 200ms ease, color 200ms ease;
 }
 
@@ -1409,7 +1411,7 @@ input.live-price-panel {
 }
 
 .pie-chart path {
-  cursor: crosshair;
+  cursor: pointer;
   outline: none;
   stroke: var(--background);
   stroke-width: 0.85;
@@ -1657,7 +1659,7 @@ td {
   min-width: 2.5rem;
   max-width: 18rem;
   border-radius: 6px;
-  cursor: cell;
+  cursor: text;
   outline: 0;
   padding: 0.18rem 0.28rem;
   white-space: pre-wrap;
@@ -1691,7 +1693,7 @@ td {
   border-radius: 6px;
   background: color-mix(in srgb, var(--gray-100) 72%, transparent);
   color: var(--gray-500);
-  cursor: not-allowed;
+  cursor: default;
   padding: 0.18rem 0.28rem;
 }
 
@@ -1727,7 +1729,7 @@ tr:last-child td {
   background: transparent;
   color: var(--gray-500);
   padding: 0.28rem 0.55rem;
-  cursor: no-drop;
+  cursor: pointer;
   transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease;
 }
 
@@ -1747,7 +1749,7 @@ tr:last-child td {
   color: var(--gray-500);
   margin-right: 0.35rem;
   padding: 0.28rem 0.55rem;
-  cursor: alias;
+  cursor: pointer;
   transition: border-color 200ms ease, color 200ms ease;
 }
 
@@ -1784,7 +1786,7 @@ tr:last-child td {
   outline: none;
   padding: 0.08rem 0.18rem;
   text-transform: none !important;
-  cursor: cell;
+  cursor: text;
 }
 
 .editable-stat:hover {
@@ -1799,7 +1801,7 @@ tr:last-child td {
 }
 
 .editable-stat.is-computed {
-  cursor: not-allowed;
+  cursor: default;
   opacity: 0.86;
 }
 
@@ -1809,7 +1811,7 @@ tr:last-child td {
   background: transparent;
   color: var(--gray-500);
   padding: 0.28rem 0.55rem;
-  cursor: no-drop;
+  cursor: pointer;
 }
 
 .custom-table-wrap {
@@ -2301,7 +2303,7 @@ tr:last-child td {
 }
 
 button:disabled {
-  cursor: not-allowed;
+  cursor: default;
   opacity: 0.45;
 }
 

@@ -10,11 +10,11 @@
     { href: '/dashboard', label: '02 - dashboard' },
     { href: '/trades', label: '03 - trades' },
     { href: '/calculator', label: '04 - calculator' },
-    { href: '/#rules', label: '05 - rules', propFirmOnly: true },
-    { href: '/backups', label: '06 - backups' }
+    { href: '/#rules', label: '05 - rules', propFirmOnly: true }
   ];
 
   const settingsLink = { href: '/settings', label: 'Settings' };
+  const backupLink = { href: '/backups', label: 'Backup' };
 
   let pinned = [];
   let kofiContainer;
@@ -167,8 +167,11 @@
     </div>
   </nav>
 
-  <a class="sidebar-settings" class:is-active={isActive(settingsLink.href)} href={settingsLink.href}>{settingsLink.label}</a>
-  <button class="sidebar-link-button" type="button" on:click={openInstructions}>Instructions</button>
+  <div class="sidebar-settings-group" aria-label="Settings navigation">
+    <a class="sidebar-settings" class:is-active={isActive(settingsLink.href)} href={settingsLink.href}>{settingsLink.label}</a>
+    <a class="sidebar-settings" class:is-active={isActive(backupLink.href)} href={backupLink.href}>{backupLink.label}</a>
+    <button class="sidebar-link-button" type="button" on:click={openInstructions}>Instructions</button>
+  </div>
   <div class="sidebar-feedback">
     <button class="feedback-toggle" type="button" on:click={() => (feedbackOpen = true)}>
       Send Feedback
