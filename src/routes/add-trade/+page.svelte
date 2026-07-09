@@ -25,10 +25,12 @@
   $: savedStopPrice = parseNumber(trade.stopPrice);
   $: savedTakeProfit1 = parseNumber(trade.takeProfit1);
   $: savedTakeProfit2 = parseNumber(trade.takeProfit2);
+  $: savedTakeProfit3 = parseNumber(trade.takeProfit3);
   $: slDistance = Math.abs(parseNumber(trade.entry) - savedStopPrice);
   $: tp1Distance = Math.abs(savedTakeProfit1 - parseNumber(trade.entry));
   $: tp2Distance = Math.abs(savedTakeProfit2 - parseNumber(trade.entry));
-  $: targetDistance = tp1Distance || tp2Distance || 0;
+  $: tp3Distance = Math.abs(savedTakeProfit3 - parseNumber(trade.entry));
+  $: targetDistance = tp1Distance || tp2Distance || tp3Distance || 0;
   $: effectivePointValue = parseNumber(trade.pointValue) || Number(data.settings?.pointValue) || 1;
   $: lotSize = slDistance > 0 && effectivePointValue > 0 ? riskAmount / (slDistance * effectivePointValue) : 0;
   $: rr = slDistance > 0 && targetDistance > 0 ? targetDistance / slDistance : 0;
@@ -54,9 +56,11 @@
       stopPrice: 0,
       takeProfit1: 0,
       takeProfit2: 0,
+      takeProfit3: 0,
       slPoints: 0,
       tp1Points: 0,
       tp2Points: 0,
+      tp3Points: 0,
       pointValue: '',
       result: 'open',
       pnl: '',
@@ -97,17 +101,20 @@
       entry: parseNumber(trade.entry),
       exitPrice: parseNumber(trade.exitPrice),
       stopPrice: savedStopPrice,
-      takeProfit: savedTakeProfit1 || savedTakeProfit2,
+      takeProfit: savedTakeProfit1 || savedTakeProfit2 || savedTakeProfit3,
       takeProfit1: savedTakeProfit1,
       takeProfit2: savedTakeProfit2,
+      takeProfit3: savedTakeProfit3,
       slPoints: slDistance,
       tpPoints: targetDistance,
       tp1Points: tp1Distance,
       tp2Points: tp2Distance,
+      tp3Points: tp3Distance,
       rawSl: savedStopPrice,
-      rawTp: savedTakeProfit1 || savedTakeProfit2,
+      rawTp: savedTakeProfit1 || savedTakeProfit2 || savedTakeProfit3,
       rawTp1: savedTakeProfit1,
       rawTp2: savedTakeProfit2,
+      rawTp3: savedTakeProfit3,
       pointValue: effectivePointValue,
       riskAmount,
       lotSize,
@@ -129,6 +136,7 @@
     trade = zeroTrade();
     customFields = Object.fromEntries((data.customColumns || []).map((column) => [column.key, '']));
     status = 'Trade added.';
+    window.dispatchEvent(new CustomEvent('mindshift-notify', { detail: { message: 'Trade Added' } }));
     setTimeout(() => {
       status = '';
     }, 2200);
@@ -189,6 +197,10 @@
             <input bind:value={trade.takeProfit2} type="number" min="0" step="0.00001" />
           </label>
           <label class="field">
+            <span>tp3</span>
+            <input bind:value={trade.takeProfit3} type="number" min="0" step="0.00001" />
+          </label>
+          <label class="field">
             <span>exit</span>
             <input bind:value={trade.exitPrice} type="number" min="0" step="0.00001" />
           </label>
@@ -224,7 +236,7 @@
           </div>
         </div>
 
-        <button class="primary-button wide" type="button" on:click={addTrade}>add trade</button>
+        <button class="primary-button wide" type="button" on:click={addTrade}>Add Trade</button>
       </div>
     </div>
   </section>

@@ -1,14 +1,18 @@
-import { LEGACY_KEY, STORAGE_KEY, getEmptyJournal, loadJournalData } from './journalData.js';
+import { LEGACY_KEY, RECOVERY_KEY, STORAGE_KEY, getEmptyJournal, loadJournalData, normalizeJournalData } from './journalData.js';
 
 export function saveJournalData(data, options = {}) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  const previous = localStorage.getItem(STORAGE_KEY);
+  if (previous) localStorage.setItem(RECOVERY_KEY, previous);
+  const normalized = normalizeJournalData(data);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...normalized, savedAt: new Date().toISOString() }));
   if (options.notify !== false) {
-    window.dispatchEvent(new CustomEvent('journal-data-change', { detail: data }));
+    window.dispatchEvent(new CustomEvent('journal-data-change', { detail: normalized }));
   }
 }
 
 export function resetJournalData() {
   localStorage.removeItem(LEGACY_KEY);
+  localStorage.removeItem(RECOVERY_KEY);
   saveJournalData({
     settings: {},
     trades: [],
@@ -77,9 +81,11 @@ export function exportJournalCsv(data = loadJournalData()) {
     'takeProfit',
     'takeProfit1',
     'takeProfit2',
+    'takeProfit3',
     'slPoints',
     'tp1Points',
     'tp2Points',
+    'tp3Points',
     'signalBy',
     'pointValue',
     'riskAmount',
@@ -92,7 +98,8 @@ export function exportJournalCsv(data = loadJournalData()) {
     'rawSl',
     'rawTp',
     'rawTp1',
-    'rawTp2'
+    'rawTp2',
+    'rawTp3'
   ];
   const customHeader = data.customColumns.map((column) => `custom:${column.label}`);
   const header = [...baseHeader, ...customHeader];
@@ -152,7 +159,8 @@ export function importJournalCsv(text) {
       const slPoints = Number(item.slPoints) || 0;
       const tp1Points = Number(item.tp1Points) || Number(item.tpPoints) || 0;
       const tp2Points = Number(item.tp2Points) || 0;
-      const targetPoints = tp1Points || tp2Points || 0;
+      const tp3Points = Number(item.tp3Points) || 0;
+      const targetPoints = tp1Points || tp2Points || tp3Points || 0;
       const pointValue = Number(item.pointValue) || Number(data.settings?.pointValue) || 1;
       const riskAmount = Number(item.riskAmount) || Number(data.settings?.capital || 0) * (Number(data.settings?.riskPercent || 0) / 100);
       const lotSize = Number(item.lotSize) || (slPoints > 0 && pointValue > 0 ? riskAmount / (slPoints * pointValue) : 0);
@@ -171,17 +179,20 @@ export function importJournalCsv(text) {
         entry,
         exitPrice,
         stopPrice: Number(item.stopPrice) || 0,
-        takeProfit: Number(item.takeProfit) || Number(item.takeProfit1) || Number(item.takeProfit2) || 0,
+        takeProfit: Number(item.takeProfit) || Number(item.takeProfit1) || Number(item.takeProfit2) || Number(item.takeProfit3) || 0,
         takeProfit1: Number(item.takeProfit1) || Number(item.takeProfit) || 0,
         takeProfit2: Number(item.takeProfit2) || 0,
+        takeProfit3: Number(item.takeProfit3) || 0,
         slPoints,
         tpPoints: targetPoints,
         tp1Points,
         tp2Points,
+        tp3Points,
         rawSl: Number(item.rawSl) || slPoints,
         rawTp: Number(item.rawTp) || targetPoints,
         rawTp1: Number(item.rawTp1) || tp1Points,
         rawTp2: Number(item.rawTp2) || tp2Points,
+        rawTp3: Number(item.rawTp3) || tp3Points,
         signalBy: item.signalBy || '',
         pointValue,
         riskAmount,

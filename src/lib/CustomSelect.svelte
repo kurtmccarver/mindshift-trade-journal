@@ -1,5 +1,5 @@
 <script>
-  import { createEventDispatcher, tick } from 'svelte';
+  import { createEventDispatcher, onDestroy, tick } from 'svelte';
 
   export let value = '';
   export let options = [];
@@ -8,6 +8,7 @@
 
   let open = false;
   let shell;
+  let menu;
   let menuStyle = '';
   const dispatch = createEventDispatcher();
 
@@ -17,12 +18,13 @@
     open = !open;
     if (open) {
       await tick();
+      portalMenu();
       positionMenu();
     }
   }
 
   function positionMenu() {
-    if (!shell) return;
+    if (!shell || !menu) return;
     const rect = shell.getBoundingClientRect();
     const gap = 6;
     const menuHeight = Math.min(240, options.length * 44 + 14);
@@ -48,6 +50,16 @@
   function handleViewportChange() {
     if (open) positionMenu();
   }
+
+  function portalMenu() {
+    if (menu && menu.parentElement !== document.body) {
+      document.body.appendChild(menu);
+    }
+  }
+
+  onDestroy(() => {
+    menu?.remove();
+  });
 </script>
 
 <svelte:window on:click={handleDocumentClick} on:keydown={handleKeydown} on:scroll={handleViewportChange} on:resize={handleViewportChange} />
@@ -56,7 +68,7 @@
   <button class="select-trigger" type="button" aria-label={ariaLabel} aria-haspopup="listbox" aria-expanded={open} on:click={toggleOpen}>
     {selected.label}
   </button>
-  <div class="select-menu" class:is-fixed={open} style={menuStyle} role="listbox" hidden={!open}>
+  <div bind:this={menu} class="select-menu" class:is-fixed={open} style={menuStyle} role="listbox" hidden={!open}>
     {#each options as option}
       <button
         class="select-option"

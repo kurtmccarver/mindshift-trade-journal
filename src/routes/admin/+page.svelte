@@ -66,7 +66,7 @@
   <section class="section-enter">
     <div class="section-heading">
       <p>02 - submissions</p>
-      <button class="ghost-button" type="button" on:click={loadFeedback} disabled={loading || !token}>refresh</button>
+      <button class="ghost-button" type="button" on:click={loadFeedback} disabled={loading || !token}>Refresh</button>
     </div>
     <div class="feedback-list">
       {#if feedback.length}

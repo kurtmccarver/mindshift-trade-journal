@@ -15,7 +15,7 @@
   let newColumn = '';
   let notice = '';
   let confirmOpen = false;
-  let draftSaveTimer;
+  let columnModalOpen = false;
   const sideOptions = [
     { value: 'long', label: 'Long' },
     { value: 'short', label: 'Short' }
@@ -63,10 +63,10 @@
 
   function slTp(trade) {
     if (trade.measurementMode === 'price') {
-      return `${number(trade.stopPrice)} / ${optionalNumber(trade.takeProfit1 || trade.takeProfit)} / ${optionalNumber(trade.takeProfit2)}`;
+      return `${number(trade.stopPrice)} / ${optionalNumber(trade.takeProfit1 || trade.takeProfit)} / ${optionalNumber(trade.takeProfit2)} / ${optionalNumber(trade.takeProfit3)}`;
     }
 
-    return `${number(trade.slPoints)} / ${optionalNumber(trade.tp1Points || trade.tpPoints)} / ${optionalNumber(trade.tp2Points)}`;
+    return `${number(trade.slPoints)} / ${optionalNumber(trade.tp1Points || trade.tpPoints)} / ${optionalNumber(trade.tp2Points)} / ${optionalNumber(trade.tp3Points)}`;
   }
 
   function optionalNumber(value) {
@@ -91,6 +91,7 @@
     notice = result.message;
     if (result.ok) {
       newColumn = '';
+      columnModalOpen = false;
       refresh();
     }
     setTimeout(() => {
@@ -140,14 +141,17 @@
       takeProfit: 0,
       takeProfit1: 0,
       takeProfit2: 0,
+      takeProfit3: 0,
       slPoints: 0,
       tpPoints: 0,
       tp1Points: 0,
       tp2Points: 0,
+      tp3Points: 0,
       rawSl: 0,
       rawTp: 0,
       rawTp1: 0,
       rawTp2: 0,
+      rawTp3: 0,
       pointValue: 0,
       riskAmount: 0,
       lotSize: 0,
@@ -172,6 +176,7 @@
     fromDate = '';
     toDate = '';
     notice = 'Trade added.';
+    window.dispatchEvent(new CustomEvent('mindshift-notify', { detail: { message: 'Trade Added' } }));
     setTimeout(() => {
       notice = '';
     }, 2200);
@@ -194,19 +199,22 @@
     } else if (field === 'entry' || field === 'exitPrice') {
       trade[field] = parseNumber(value);
     } else if (field === 'slTp') {
-      const [sl = 0, tp1 = 0, tp2 = 0] = value.split('/').map(parseNumber);
+      const [sl = 0, tp1 = 0, tp2 = 0, tp3 = 0] = value.split('/').map(parseNumber);
       trade.slPoints = sl;
       trade.tp1Points = tp1;
       trade.tp2Points = tp2;
-      trade.tpPoints = tp1 || tp2 || 0;
+      trade.tp3Points = tp3;
+      trade.tpPoints = tp1 || tp2 || tp3 || 0;
       trade.rawSl = sl;
       trade.rawTp1 = tp1;
       trade.rawTp2 = tp2;
+      trade.rawTp3 = tp3;
       trade.rawTp = trade.tpPoints;
       if (trade.measurementMode === 'price') {
         trade.stopPrice = sl;
         trade.takeProfit1 = tp1;
         trade.takeProfit2 = tp2;
+        trade.takeProfit3 = tp3;
       }
     } else if (field === 'signalBy' || field === 'notes') {
       trade[field] = value.trim();
@@ -221,6 +229,7 @@
     saveJournalData(next);
     data = next;
     summary = summarizeJournal(next);
+    window.dispatchEvent(new CustomEvent('mindshift-notify', { detail: { message: 'Trade Updated' } }));
   }
 
   function applyTradeValue(trade, field, value) {
@@ -236,19 +245,22 @@
     } else if (field === 'entry' || field === 'exitPrice') {
       trade[field] = parseNumber(value);
     } else if (field === 'slTp') {
-      const [sl = 0, tp1 = 0, tp2 = 0] = value.split('/').map(parseNumber);
+      const [sl = 0, tp1 = 0, tp2 = 0, tp3 = 0] = value.split('/').map(parseNumber);
       trade.slPoints = sl;
       trade.tp1Points = tp1;
       trade.tp2Points = tp2;
-      trade.tpPoints = tp1 || tp2 || 0;
+      trade.tp3Points = tp3;
+      trade.tpPoints = tp1 || tp2 || tp3 || 0;
       trade.rawSl = sl;
       trade.rawTp1 = tp1;
       trade.rawTp2 = tp2;
+      trade.rawTp3 = tp3;
       trade.rawTp = trade.tpPoints;
       if (trade.measurementMode === 'price') {
         trade.stopPrice = sl;
         trade.takeProfit1 = tp1;
         trade.takeProfit2 = tp2;
+        trade.takeProfit3 = tp3;
       }
     } else if (field === 'signalBy' || field === 'notes') {
       trade[field] = value.trim();
@@ -261,23 +273,22 @@
   }
 
   function saveCellDraft(event, tradeId, field) {
-    clearTimeout(draftSaveTimer);
     const value = event.currentTarget.textContent || '';
-    draftSaveTimer = setTimeout(() => {
-      const next = structuredClone(data);
-      const trade = next.trades.find((item) => item.id === tradeId);
-      if (!trade) return;
-      applyTradeValue(trade, field, value);
-      recalculateTrade(trade, next.settings);
-      saveJournalData(next, { notify: false });
-    }, 180);
+    const next = structuredClone(data);
+    const trade = next.trades.find((item) => item.id === tradeId);
+    if (!trade) return;
+    applyTradeValue(trade, field, value);
+    recalculateTrade(trade, next.settings);
+    saveJournalData(next, { notify: false });
+    data = next;
+    summary = summarizeJournal(next);
   }
 
   function recalculateTrade(trade, settings = {}) {
     const pointValue = Number(trade.pointValue) || Number(settings.pointValue) || 1;
     const riskAmount = Number(trade.riskAmount) || (Number(settings.capital) || 0) * ((Number(settings.riskPercent) || 0) / 100);
     const slPoints = Number(trade.slPoints) || 0;
-    const targetPoints = Number(trade.tp1Points) || Number(trade.tp2Points) || Number(trade.tpPoints) || 0;
+    const targetPoints = Number(trade.tp1Points) || Number(trade.tp2Points) || Number(trade.tp3Points) || Number(trade.tpPoints) || 0;
 
     trade.pointValue = pointValue;
     trade.riskAmount = riskAmount;
@@ -355,7 +366,7 @@
 
   <section id="filters" class="section-enter">
     <div class="section-heading">
-      <p>02 - filters and columns</p>
+      <p>02 - filters</p>
       {#if notice}<span class="status-chip is-active">{notice}</span>{/if}
     </div>
     <div class="card management-panel">
@@ -368,16 +379,6 @@
         <label><span>from date</span><input bind:value={fromDate} type="date" /></label>
         <label><span>to date</span><input bind:value={toDate} type="date" /></label>
       </div>
-      <div class="quote-line custom-entry">
-        <label><span>new table column</span><input bind:value={newColumn} list="columnSuggestions" type="text" maxlength="32" placeholder="session, setup..." on:blur={() => (newColumn = normalizeColumnLabel(newColumn))} on:keydown={(event) => event.key === 'Enter' && addColumn()} /></label>
-        <datalist id="columnSuggestions">
-          <option value="signal by"></option>
-          <option value="session"></option>
-          <option value="setup"></option>
-          <option value="emotion"></option>
-        </datalist>
-        <button class="primary-button" type="button" on:click={addColumn}>add column</button>
-      </div>
     </div>
   </section>
 
@@ -388,12 +389,13 @@
         {#if selectedFilteredIds.length}<span class="selected-count">{selectedFilteredIds.length} selected</span>{/if}
       </p>
       <div class="section-actions">
-        <button class="primary-button compact-button" type="button" on:click={addRow}>add trade</button>
+        <button class="primary-button compact-button" type="button" on:click={addRow}>Add Trade</button>
+        <button class="ghost-button" type="button" on:click={() => (columnModalOpen = true)}>Add Column</button>
         <button class="ghost-button" type="button" on:click={toggleAllFiltered} disabled={!filteredTrades.length}>
-          {allFilteredSelected ? 'clear selected' : 'select all'}
+          {allFilteredSelected ? 'Clear Selected' : 'Select All'}
         </button>
         {#if selectedFilteredIds.length}
-          <button class="danger-button" type="button" on:click={askDelete}>delete checked</button>
+          <button class="danger-button" type="button" on:click={askDelete}>Delete Checked</button>
         {/if}
       </div>
     </div>
@@ -412,7 +414,7 @@
             <th>Side</th>
             <th>Entry</th>
             <th>Exit</th>
-            <th>SL / TP1 / TP2</th>
+            <th>SL / TP1 / TP2 / TP3</th>
             <th>Lots</th>
             <th>RR</th>
             <th>Result</th>
@@ -472,8 +474,31 @@
         This cannot be undone.
       </p>
       <div class="confirm-actions">
-        <button class="ghost-button" type="button" on:click={closeConfirm}>cancel</button>
-        <button class="danger-button" type="button" on:click={confirmDelete}>delete</button>
+        <button class="ghost-button" type="button" on:click={closeConfirm}>Cancel</button>
+        <button class="danger-button" type="button" on:click={confirmDelete}>Delete</button>
+      </div>
+    </div>
+  </div>
+{/if}
+
+{#if columnModalOpen}
+  <div class="confirm-overlay is-visible" role="presentation" on:click={(event) => event.target === event.currentTarget && (columnModalOpen = false)}>
+    <div class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="columnModalTitle" tabindex="-1">
+      <p class="micro">Custom Column</p>
+      <h2 id="columnModalTitle">Add Table Column</h2>
+      <label>
+        <span>Column Name</span>
+        <input bind:value={newColumn} list="columnSuggestions" type="text" maxlength="32" placeholder="Session, setup..." on:blur={() => (newColumn = normalizeColumnLabel(newColumn))} on:keydown={(event) => event.key === 'Enter' && addColumn()} />
+      </label>
+      <datalist id="columnSuggestions">
+        <option value="signal by"></option>
+        <option value="session"></option>
+        <option value="setup"></option>
+        <option value="emotion"></option>
+      </datalist>
+      <div class="confirm-actions">
+        <button class="ghost-button" type="button" on:click={() => (columnModalOpen = false)}>Cancel</button>
+        <button class="primary-button" type="button" on:click={addColumn}>Add Column</button>
       </div>
     </div>
   </div>

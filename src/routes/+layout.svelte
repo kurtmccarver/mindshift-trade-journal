@@ -3,20 +3,24 @@
   import { afterNavigate } from '$app/navigation';
   import '../app.css';
   import { applyAppSettings, loadAppSettings, saveAppSettings } from '$lib/appSettings.js';
+  import { createScheduledBackupIfDue } from '$lib/backupActions.js';
 
   const journalKey = 'minimal-trade-journal:v2';
+  const onboardingKey = 'mindshift-onboarding-complete:v1';
   let themeIcon = 'moon';
   let showOnboarding = false;
-  let selectedMode = 'prop';
+  let selectedMode = 'simple';
   let onboardingStep = 1;
   let instructionsOpenedManually = false;
+  let toasts = [];
 
   $: onboardingPages = selectedMode === 'simple'
     ? [
         ['Add Trade', 'A pinned quick-entry page for journaling a trade directly into the saved table.'],
         ['Home', 'Shows the core journal flow, calculator, live/manual price field, analytics, and recent trades without prop-firm rule blocks.'],
         ['Dashboard', 'Shows performance PnL, win rate, RR gain, charts, pair/token distribution, optional signal-by chart, and recent trades.'],
-        ['Trades', 'Lists every trade in one editable table. Filter by pair, date, and side, edit cells inline, add custom columns, and delete selected trades.']
+        ['Trades', 'Lists every trade in one editable table. Filter by pair, date, and side, edit cells inline, add custom columns, and delete selected trades.'],
+        ['Backups', 'Creates local snapshots of your journal and settings so you can restore data if something changes unexpectedly.']
       ]
     : [
         ['Add Trade', 'A pinned quick-entry page for journaling a trade directly into the saved table.'],
@@ -24,7 +28,8 @@
         ['Dashboard', 'Shows challenge progress, target health, PnL, win rate, RR gain, charts, pair/token distribution, signal-by analysis, and recent trades.'],
         ['Trades', 'Lists every trade in one editable table. Filter by pair, date, and side, edit cells inline, add custom columns, and delete selected trades.'],
         ['Calculator', 'A standalone volume calculator for quick position sizing using capital, risk, entry, stop, target, and value per lot.'],
-        ['Rules', 'Shows account capital, risk percent, phase one, phase two, funded targets, max daily loss, completion checks, and payout readiness.']
+        ['Rules', 'Shows account capital, risk percent, phase one, phase two, funded targets, max daily loss, completion checks, and payout readiness.'],
+        ['Backups', 'Creates local snapshots of your journal and settings so you can restore data if something changes unexpectedly.']
       ];
 
   function readJournalState() {
@@ -65,20 +70,27 @@
 
     applyEverything();
     applyTheme();
-    showOnboarding = true;
+    showOnboarding = localStorage.getItem(onboardingKey) !== 'true';
     instructionsOpenedManually = false;
     selectedMode = loadAppSettings().simpleMode ? 'simple' : 'prop';
+    createScheduledBackupIfDue('Scheduled Snapshot');
     const media = window.matchMedia('(prefers-color-scheme: dark)');
     media.addEventListener('change', applyTheme);
     window.addEventListener('app-settings-change', applyEverything);
+    window.addEventListener('app-settings-change', handlePersistedChange);
+    window.addEventListener('journal-data-change', handlePersistedChange);
     window.addEventListener('storage', applyEverything);
     window.addEventListener('mindshift-open-instructions', openInstructions);
+    window.addEventListener('mindshift-notify', handleNotify);
 
     return () => {
       media.removeEventListener('change', applyTheme);
       window.removeEventListener('app-settings-change', applyEverything);
+      window.removeEventListener('app-settings-change', handlePersistedChange);
+      window.removeEventListener('journal-data-change', handlePersistedChange);
       window.removeEventListener('storage', applyEverything);
       window.removeEventListener('mindshift-open-instructions', openInstructions);
+      window.removeEventListener('mindshift-notify', handleNotify);
     };
   });
 
@@ -98,11 +110,13 @@
     };
     saveAppSettings(nextSettings);
     applyAppSettings(nextSettings);
+    localStorage.setItem(onboardingKey, 'true');
     showOnboarding = false;
     instructionsOpenedManually = false;
   }
 
   function skipOnboarding() {
+    if (!instructionsOpenedManually) localStorage.setItem(onboardingKey, 'true');
     showOnboarding = false;
     instructionsOpenedManually = false;
   }
@@ -121,6 +135,22 @@
     instructionsOpenedManually = true;
     showOnboarding = true;
   }
+
+  function handlePersistedChange() {
+    createScheduledBackupIfDue('Scheduled Snapshot');
+  }
+
+  function handleNotify(event) {
+    notify(event.detail?.message || event.detail || 'Saved');
+  }
+
+  function notify(message) {
+    const id = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
+    toasts = [{ id, message }, ...toasts].slice(0, 4);
+    setTimeout(() => {
+      toasts = toasts.filter((toast) => toast.id !== id);
+    }, 3200);
+  }
 </script>
 
 <svelte:head>
@@ -133,6 +163,12 @@
 <button class="floating-theme-toggle icon-button" type="button" aria-label="Toggle theme" on:click={toggleTheme}>
   {#if themeIcon === 'sun'}&#9788;{:else}&#9790;{/if}
 </button>
+
+<div class="toast-stack" aria-live="polite" aria-atomic="false">
+  {#each toasts as toast}
+    <div class="toast">{toast.message}</div>
+  {/each}
+</div>
 
 {#if showOnboarding}
   <div class="onboarding-overlay" role="presentation">
@@ -184,14 +220,14 @@
       {/if}
 
       <div class="onboarding-actions">
-        <button class="ghost-button" type="button" on:click={skipOnboarding}>{instructionsOpenedManually ? 'close' : 'skip'}</button>
+        <button class="ghost-button" type="button" on:click={skipOnboarding}>{instructionsOpenedManually ? 'Close' : 'Skip'}</button>
         {#if onboardingStep > 1}
-          <button class="ghost-button" type="button" on:click={previousOnboardingStep}>back</button>
+          <button class="ghost-button" type="button" on:click={previousOnboardingStep}>Back</button>
         {/if}
         {#if onboardingStep < 3}
-          <button class="primary-button" type="button" on:click={nextOnboardingStep}>next</button>
+          <button class="primary-button" type="button" on:click={nextOnboardingStep}>Next</button>
         {:else}
-          <button class="primary-button" type="button" on:click={finishOnboarding}>{instructionsOpenedManually ? 'apply and close' : 'save and start'}</button>
+          <button class="primary-button" type="button" on:click={finishOnboarding}>{instructionsOpenedManually ? 'Apply And Close' : 'Save And Start'}</button>
         {/if}
       </div>
     </div>

@@ -7,8 +7,8 @@ export const defaultSettings = {
   customBackground: '#ffffff',
   customInk: '#0a0a0a',
   customThemeEnabled: false,
-  propFirmEnabled: true,
-  simpleMode: false
+  propFirmEnabled: false,
+  simpleMode: true
 };
 
 export function loadAppSettings() {

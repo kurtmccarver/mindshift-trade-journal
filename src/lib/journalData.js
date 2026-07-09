@@ -1,26 +1,34 @@
 export const STORAGE_KEY = 'minimal-trade-journal:v2';
 export const LEGACY_KEY = 'minimal-trade-journal:v1';
+export const RECOVERY_KEY = 'minimal-trade-journal:recovery:v1';
 
 import { formatDate as formatAppDate, formatMoney } from './appSettings.js';
 
 export function loadJournalData() {
   if (typeof localStorage === 'undefined') return getEmptyJournal();
 
-  const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_KEY);
+  const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_KEY) || localStorage.getItem(RECOVERY_KEY);
   if (!saved) return getEmptyJournal();
 
   try {
-    const parsed = JSON.parse(saved);
-    return {
-      settings: parsed.settings || {},
-      trades: Array.isArray(parsed.trades) ? parsed.trades : [],
-      customColumns: Array.isArray(parsed.customColumns) ? parsed.customColumns : [],
-      selectedMarket: parsed.selectedMarket || null,
-      theme: parsed.theme || 'system'
-    };
+    return normalizeJournalData(JSON.parse(saved));
   } catch {
-    return getEmptyJournal();
+    try {
+      return normalizeJournalData(JSON.parse(localStorage.getItem(RECOVERY_KEY) || '{}'));
+    } catch {
+      return getEmptyJournal();
+    }
   }
+}
+
+export function normalizeJournalData(parsed = {}) {
+  return {
+    settings: parsed.settings || {},
+    trades: Array.isArray(parsed.trades) ? parsed.trades.map(normalizeTrade) : [],
+    customColumns: Array.isArray(parsed.customColumns) ? parsed.customColumns : [],
+    selectedMarket: parsed.selectedMarket || null,
+    theme: parsed.theme || 'system'
+  };
 }
 
 export function getEmptyJournal() {
@@ -30,6 +38,15 @@ export function getEmptyJournal() {
     customColumns: [],
     selectedMarket: null,
     theme: 'system'
+  };
+}
+
+function normalizeTrade(trade = {}) {
+  return {
+    ...trade,
+    takeProfit3: Number(trade.takeProfit3) || 0,
+    tp3Points: Number(trade.tp3Points) || 0,
+    rawTp3: Number(trade.rawTp3) || 0
   };
 }
 

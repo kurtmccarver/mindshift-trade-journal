@@ -14,7 +14,7 @@
     { href: '/backups', label: '06 - backups' }
   ];
 
-  const settingsLink = { href: '/settings', label: 'settings' };
+  const settingsLink = { href: '/settings', label: 'Settings' };
 
   let pinned = [];
   let kofiContainer;
@@ -168,10 +168,10 @@
   </nav>
 
   <a class="sidebar-settings" class:is-active={isActive(settingsLink.href)} href={settingsLink.href}>{settingsLink.label}</a>
-  <button class="sidebar-link-button" type="button" on:click={openInstructions}>instructions</button>
+  <button class="sidebar-link-button" type="button" on:click={openInstructions}>Instructions</button>
   <div class="sidebar-feedback">
     <button class="feedback-toggle" type="button" on:click={() => (feedbackOpen = true)}>
-      send feedback
+      Send Feedback
     </button>
     {#if feedbackStatus}<p class="feedback-status">{feedbackStatus}</p>{/if}
   </div>
@@ -193,7 +193,7 @@
       <form on:submit|preventDefault={submitFeedback}>
         <div class="modal-head">
           <p class="eyebrow">feedback</p>
-          <h2 id="feedbackTitle">send feedback</h2>
+          <h2 id="feedbackTitle">Send Feedback</h2>
           <p>Share what should improve. This is the only form connected to Supabase.</p>
         </div>
         <label>
@@ -214,9 +214,9 @@
         </label>
         {#if feedbackStatus}<p class="feedback-status">{feedbackStatus}</p>{/if}
         <div class="confirm-actions">
-          <button class="ghost-button" type="button" on:click={() => (feedbackOpen = false)}>cancel</button>
+          <button class="ghost-button" type="button" on:click={() => (feedbackOpen = false)}>Cancel</button>
           <button class="primary-button" type="submit" disabled={feedbackSubmitting}>
-            {feedbackSubmitting ? 'sending...' : 'send'}
+            {feedbackSubmitting ? 'Sending...' : 'Send'}
           </button>
         </div>
       </form>

@@ -21,6 +21,7 @@
 
     <h2>Trades And Data</h2>
     <p>Your journal entries, rules, settings, custom columns, imports, and exports are stored in this browser local storage unless you deploy or modify the app with a backend. Clearing browser data can remove saved journal data.</p>
+    <p>Backups and scheduled snapshots are also stored locally in this browser. They may include trades, app settings, custom columns, theme preferences, and sidebar pins. Exported backup JSON files are created only when you choose to download them.</p>
 
     <h2>Information Usage</h2>
     <p>The app uses your entries only to calculate lot size, RR, PnL, challenge progress, filters, charts, and exports. Do not store passwords, API secrets, account logins, or other sensitive credentials in notes or custom columns.</p>

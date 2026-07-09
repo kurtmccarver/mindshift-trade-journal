@@ -194,6 +194,7 @@
           <label><span id="slLabel">stop loss points</span><input id="slPoints" type="number" min="0" step="0.00001" /></label>
           <label><span id="tp1Label">TP1 points optional</span><input id="tp1Points" type="number" min="0" step="0.00001" placeholder="optional" /></label>
           <label><span id="tp2Label">TP2 points optional</span><input id="tp2Points" type="number" min="0" step="0.00001" placeholder="optional" /></label>
+          <label><span id="tp3Label">TP3 points optional</span><input id="tp3Points" type="number" min="0" step="0.00001" placeholder="optional" /></label>
           <label><span>point value / lot</span><input id="pointValue" type="number" min="0" step="0.01" /></label>
         </div>
       </div>
@@ -219,8 +220,8 @@
         </label>
       </div>
       <div class="action-row">
-        <button class="primary-button wide" id="addTrade" type="button">add trade to journal</button>
-        <button class="ghost-button" id="cancelEdit" type="button" hidden>cancel edit</button>
+        <button class="primary-button wide" id="addTrade" type="button">Add Trade To Journal</button>
+        <button class="ghost-button" id="cancelEdit" type="button" hidden>Cancel Edit</button>
       </div>
     </div>
   </section>
@@ -239,7 +240,7 @@
   <section id="journal" class="section-enter">
     <div class="section-heading">
       <p>04 - journal</p>
-      <button class="ghost-button" id="addJournalRow" type="button">add trade</button>
+      <button class="ghost-button" id="addJournalRow" type="button">Add Trade</button>
     </div>
     <div class="journal-table-wrap card">
       <table>
@@ -261,8 +262,8 @@
     <h2 id="confirmTitle">Are you sure?</h2>
     <p id="confirmMessage">This action cannot be undone.</p>
     <div class="confirm-actions">
-      <button class="ghost-button" id="confirmCancel" type="button">cancel</button>
-      <button class="danger-button" id="confirmOk" type="button">confirm</button>
+      <button class="ghost-button" id="confirmCancel" type="button">Cancel</button>
+      <button class="danger-button" id="confirmOk" type="button">Confirm</button>
     </div>
   </div>
 </div>

@@ -3,6 +3,7 @@ import { isAllowedExchange } from "./exchangeConfig.js";
 
 const STORAGE_KEY = "minimal-trade-journal:v2";
 const LEGACY_KEY = "minimal-trade-journal:v1";
+const RECOVERY_KEY = "minimal-trade-journal:recovery:v1";
 
 const defaults = {
   settings: {
@@ -35,6 +36,7 @@ const defaults = {
     slPoints: 100,
     tp1Points: 200,
     tp2Points: "",
+    tp3Points: "",
     signalBy: "",
     pointValue: 1,
     direction: "long",
@@ -78,6 +80,7 @@ const fields = [
   "slPoints",
   "tp1Points",
   "tp2Points",
+  "tp3Points",
   "signalBy",
   "pointValue",
   "direction",
@@ -166,7 +169,10 @@ function loadState() {
 }
 
 function saveState() {
+  const previous = localStorage.getItem(STORAGE_KEY);
+  if (previous) localStorage.setItem(RECOVERY_KEY, previous);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  window.dispatchEvent(new CustomEvent("journal-data-change", { detail: state }));
 }
 
 function numberValue(id) {
@@ -212,6 +218,7 @@ function getCalculator() {
   const rawSl = numberValue("slPoints");
   const rawTp1 = numberValue("tp1Points");
   const rawTp2 = numberValue("tp2Points");
+  const rawTp3 = numberValue("tp3Points");
   const pointValue = numberValue("pointValue");
   const entry = numberValue("entryPrice");
   const exit = numberValue("exitPrice");
@@ -221,22 +228,26 @@ function getCalculator() {
   let slPoints = rawSl;
   let tp1Points = rawTp1;
   let tp2Points = rawTp2;
+  let tp3Points = rawTp3;
   let stopPrice = direction === "long" ? entry - rawSl : entry + rawSl;
   let takeProfit1 = rawTp1 > 0 ? (direction === "long" ? entry + rawTp1 : entry - rawTp1) : 0;
   let takeProfit2 = rawTp2 > 0 ? (direction === "long" ? entry + rawTp2 : entry - rawTp2) : 0;
+  let takeProfit3 = rawTp3 > 0 ? (direction === "long" ? entry + rawTp3 : entry - rawTp3) : 0;
 
   if (measurementMode === "price") {
     stopPrice = rawSl;
     takeProfit1 = rawTp1;
     takeProfit2 = rawTp2;
+    takeProfit3 = rawTp3;
     slPoints = Math.abs(entry - stopPrice);
     tp1Points = rawTp1 > 0 ? Math.abs(takeProfit1 - entry) : 0;
     tp2Points = rawTp2 > 0 ? Math.abs(takeProfit2 - entry) : 0;
+    tp3Points = rawTp3 > 0 ? Math.abs(takeProfit3 - entry) : 0;
   }
 
   const riskAmount = computedRiskMoney(capital, riskPercent);
   const lotSize = slPoints > 0 && pointValue > 0 ? riskAmount / (slPoints * pointValue) : 0;
-  const targetPoints = tp1Points || tp2Points || 0;
+  const targetPoints = tp1Points || tp2Points || tp3Points || 0;
   const rr = slPoints > 0 && targetPoints > 0 ? targetPoints / slPoints : 0;
   const gain = riskAmount * rr;
   const autoPnl = exit > 0 && entry > 0
@@ -250,9 +261,11 @@ function getCalculator() {
     rawSl,
     rawTp1,
     rawTp2,
+    rawTp3,
     slPoints,
     tp1Points,
     tp2Points,
+    tp3Points,
     targetPoints,
     pointValue,
     entry,
@@ -265,6 +278,7 @@ function getCalculator() {
     stopPrice,
     takeProfit1,
     takeProfit2,
+    takeProfit3,
   };
 }
 
@@ -298,6 +312,7 @@ function updateCalculator() {
   $("slLabel").textContent = priceMode ? "stop loss price" : "stop loss points";
   $("tp1Label").textContent = priceMode ? "TP1 price optional" : "TP1 points optional";
   $("tp2Label").textContent = priceMode ? "TP2 price optional" : "TP2 points optional";
+  $("tp3Label").textContent = priceMode ? "TP3 price optional" : "TP3 points optional";
   $("riskAmount").textContent = money.format(calc.riskAmount);
   $("lotSize").textContent = calc.lotSize.toFixed(2);
   $("rrGain").textContent = `${calc.rr.toFixed(2)}R`;
@@ -373,8 +388,8 @@ function renderTrades() {
     const row = document.createElement("tr");
     row.dataset.tradeRow = trade.id;
     const slTp = trade.measurementMode === "price"
-      ? `${formatNumber(trade.stopPrice)} / ${formatOptionalNumber(trade.takeProfit1 || trade.takeProfit)} / ${formatOptionalNumber(trade.takeProfit2)}`
-      : `${formatNumber(trade.slPoints)} / ${formatOptionalNumber(trade.tp1Points || trade.tpPoints)} / ${formatOptionalNumber(trade.tp2Points)}`;
+      ? `${formatNumber(trade.stopPrice)} / ${formatOptionalNumber(trade.takeProfit1 || trade.takeProfit)} / ${formatOptionalNumber(trade.takeProfit2)} / ${formatOptionalNumber(trade.takeProfit3)}`
+      : `${formatNumber(trade.slPoints)} / ${formatOptionalNumber(trade.tp1Points || trade.tpPoints)} / ${formatOptionalNumber(trade.tp2Points)} / ${formatOptionalNumber(trade.tp3Points)}`;
     row.innerHTML = `
       <td>${editableCell(trade.id, "date", trade.date || new Date().toISOString().slice(0, 10))}</td>
       <td>${editableCell(trade.id, "symbol", trade.symbol || "0")}</td>
@@ -424,7 +439,7 @@ function normalizeCellValue(value) {
 function renderJournalHeader() {
   const row = $("journalHeadRow");
   if (!row) return;
-  const baseHeaders = ["Date", "Pair", "Side", "Entry", "Exit", "SL / TP1 / TP2", "Lots", "RR", "PnL", "Notes"];
+  const baseHeaders = ["Date", "Pair", "Side", "Entry", "Exit", "SL / TP1 / TP2 / TP3", "Lots", "RR", "PnL", "Notes"];
   row.innerHTML = [
     ...baseHeaders.map((label) => `<th>${label}</th>`),
     ...state.customColumns.map((column) => `<th>${escapeHtml(column.label)}</th>`),
@@ -439,7 +454,7 @@ function renderCustomColumnTools() {
   if (!state.customColumns.length) {
     const empty = document.createElement("p");
     empty.className = "empty-state";
-    empty.textContent = "No custom columns yet.";
+    empty.textContent = "No Custom Columns Yet.";
     list.appendChild(empty);
     return;
   }
@@ -449,7 +464,7 @@ function renderCustomColumnTools() {
     pill.className = "column-pill";
     pill.innerHTML = `
       <span>${escapeHtml(column.label)}</span>
-      <button class="delete-custom-column" type="button" data-column-delete="${column.key}" aria-label="Remove ${escapeHtml(column.label)} column">remove</button>
+      <button class="delete-custom-column" type="button" data-column-delete="${column.key}" aria-label="Remove ${escapeHtml(column.label)} column">Remove</button>
     `;
     list.appendChild(pill);
   });
@@ -799,18 +814,21 @@ function buildTrade(id = createId()) {
     entry: calc.entry,
     exitPrice: calc.exit,
     stopPrice: calc.stopPrice,
-    takeProfit: calc.takeProfit1 || calc.takeProfit2 || 0,
+    takeProfit: calc.takeProfit1 || calc.takeProfit2 || calc.takeProfit3 || 0,
     takeProfit1: calc.takeProfit1,
     takeProfit2: calc.takeProfit2,
+    takeProfit3: calc.takeProfit3,
     slPoints: calc.slPoints,
     tpPoints: calc.targetPoints,
     tp1Points: calc.tp1Points,
     tp2Points: calc.tp2Points,
+    tp3Points: calc.tp3Points,
     signalBy: $("signalBy").value.trim(),
     rawSl: calc.rawSl,
-    rawTp: calc.rawTp1 || calc.rawTp2 || 0,
+    rawTp: calc.rawTp1 || calc.rawTp2 || calc.rawTp3 || 0,
     rawTp1: calc.rawTp1,
     rawTp2: calc.rawTp2,
+    rawTp3: calc.rawTp3,
     pointValue: calc.pointValue,
     riskAmount: calc.riskAmount,
     lotSize: calc.lotSize,
@@ -845,15 +863,18 @@ function buildEmptyTrade() {
     takeProfit: 0,
     takeProfit1: 0,
     takeProfit2: 0,
+    takeProfit3: 0,
     slPoints: 0,
     tpPoints: 0,
     tp1Points: 0,
     tp2Points: 0,
+    tp3Points: 0,
     signalBy: "",
     rawSl: 0,
     rawTp: 0,
     rawTp1: 0,
     rawTp2: 0,
+    rawTp3: 0,
     pointValue: 0,
     riskAmount: 0,
     lotSize: 0,
@@ -870,7 +891,7 @@ function addJournalRow() {
   state.trades.unshift(buildEmptyTrade());
   saveState();
   render();
-  notify("row added");
+  notify("Trade Added");
   setTimeout(() => {
     document.querySelector("[data-cell-field='symbol']")?.focus();
   }, 0);
@@ -888,7 +909,7 @@ function updateTradeCell(cell) {
   saveState();
   updateAnalytics();
   cell.textContent = displayCellValue(trade, field);
-  notify("cell saved");
+  notify("Trade Updated");
 }
 
 function applyCellValue(trade, field, value) {
@@ -919,21 +940,24 @@ function applyCellValue(trade, field, value) {
 }
 
 function applySlTpCell(trade, value) {
-  const [sl = 0, tp1 = 0, tp2 = 0] = value
+  const [sl = 0, tp1 = 0, tp2 = 0, tp3 = 0] = value
     .split("/")
     .map((item) => parseEditableNumber(item));
   trade.slPoints = sl;
   trade.tp1Points = tp1;
   trade.tp2Points = tp2;
-  trade.tpPoints = tp1 || tp2 || 0;
+  trade.tp3Points = tp3;
+  trade.tpPoints = tp1 || tp2 || tp3 || 0;
   trade.rawSl = sl;
   trade.rawTp1 = tp1;
   trade.rawTp2 = tp2;
+  trade.rawTp3 = tp3;
   trade.rawTp = trade.tpPoints;
   if (trade.measurementMode === "price") {
     trade.stopPrice = sl;
     trade.takeProfit1 = tp1;
     trade.takeProfit2 = tp2;
+    trade.takeProfit3 = tp3;
   }
 }
 
@@ -943,7 +967,7 @@ function recalculateInlineTrade(trade) {
   const pointValue = Number(trade.pointValue) || Number(state.settings.pointValue) || 1;
   const riskAmount = Number(trade.riskAmount) || capital * (riskPercent / 100);
   const slPoints = Number(trade.slPoints) || 0;
-  const targetPoints = Number(trade.tp1Points) || Number(trade.tp2Points) || Number(trade.tpPoints) || 0;
+  const targetPoints = Number(trade.tp1Points) || Number(trade.tp2Points) || Number(trade.tp3Points) || Number(trade.tpPoints) || 0;
 
   trade.pointValue = pointValue;
   trade.riskAmount = riskAmount;
@@ -966,7 +990,7 @@ function displayCellValue(trade, field) {
   if (field.startsWith("custom:")) return trade.customFields?.[field.slice("custom:".length)] || "";
   if (field === "entry") return trade.entry ? formatNumber(trade.entry) : "";
   if (field === "exitPrice") return trade.exitPrice ? formatNumber(trade.exitPrice) : "";
-  if (field === "slTp") return `${formatNumber(trade.slPoints)} / ${formatOptionalNumber(trade.tp1Points || trade.tpPoints)} / ${formatOptionalNumber(trade.tp2Points)}`;
+  if (field === "slTp") return `${formatNumber(trade.slPoints)} / ${formatOptionalNumber(trade.tp1Points || trade.tpPoints)} / ${formatOptionalNumber(trade.tp2Points)} / ${formatOptionalNumber(trade.tp3Points)}`;
   if (field === "pnl") return money.format(getTradePnl(trade));
   return trade[field] || "";
 }
@@ -1019,7 +1043,7 @@ function clearTradeForm(keepPrice = true) {
   $("exitPrice").value = "";
   $("result").value = "open";
   if (!keepPrice) state.settings.result = "open";
-  $("addTrade").textContent = "add trade to journal";
+  $("addTrade").textContent = "Add Trade To Journal";
   $("cancelEdit").hidden = true;
 }
 
@@ -1036,13 +1060,14 @@ function editTrade(id) {
   $("slPoints").value = trade.measurementMode === "price" ? trade.stopPrice : trade.slPoints;
   $("tp1Points").value = trade.measurementMode === "price" ? (trade.takeProfit1 || trade.takeProfit || "") : (trade.tp1Points || trade.tpPoints || "");
   $("tp2Points").value = trade.measurementMode === "price" ? (trade.takeProfit2 || "") : (trade.tp2Points || "");
+  $("tp3Points").value = trade.measurementMode === "price" ? (trade.takeProfit3 || "") : (trade.tp3Points || "");
   $("signalBy").value = trade.signalBy || "";
   $("pointValue").value = trade.pointValue;
   $("direction").value = trade.direction;
   $("result").value = trade.result;
   $("notes").value = trade.notes || "";
   state.settings.customFieldValues = { ...(trade.customFields || {}) };
-  $("addTrade").textContent = "update trade";
+  $("addTrade").textContent = "Update Trade";
   $("cancelEdit").hidden = false;
   readSettingsFromDom();
   state.settings.customFieldValues = { ...(trade.customFields || {}) };
@@ -1056,7 +1081,7 @@ async function deleteTrade(id) {
   const confirmed = await confirmDialog({
     title: "Remove trade?",
     message: `Remove ${trade.symbol} trade? This cannot be undone.`,
-    confirmText: "remove",
+    confirmText: "Remove",
   });
   if (!confirmed) return;
   state.trades = state.trades.filter((item) => item.id !== id);
@@ -1069,13 +1094,13 @@ function addCustomColumn() {
   const input = $("customColumnName");
   const label = normalizeColumnLabel(input?.value || "");
   if (!label) {
-    notify("column name required");
+    notify("Column Name Required");
     return;
   }
 
   const key = createColumnKey(label);
   if (state.customColumns.some((column) => column.key === key || column.label.toLowerCase() === label.toLowerCase())) {
-    notify("column already exists");
+    notify("Column Already Exists");
     return;
   }
 
@@ -1084,7 +1109,7 @@ function addCustomColumn() {
   input.value = "";
   saveState();
   render();
-  notify(`${label} column added`);
+  notify(`${label} Column Added`);
 }
 
 async function removeCustomColumn(key) {
@@ -1093,7 +1118,7 @@ async function removeCustomColumn(key) {
   const confirmed = await confirmDialog({
     title: "Remove column?",
     message: `Remove ${column.label} from the journal table? Saved trade values for this column will be hidden.`,
-    confirmText: "remove",
+    confirmText: "Remove",
   });
   if (!confirmed) return;
 
@@ -1132,9 +1157,11 @@ function exportCsv() {
     "takeProfit",
     "takeProfit1",
     "takeProfit2",
+    "takeProfit3",
     "slPoints",
     "tp1Points",
     "tp2Points",
+    "tp3Points",
     "signalBy",
     "lotSize",
     "rr",
@@ -1225,7 +1252,8 @@ async function importCsv(event) {
     const slPoints = Number(item.slPoints) || 0;
     const tp1Points = Number(item.tp1Points) || Number(item.tpPoints) || 0;
     const tp2Points = Number(item.tp2Points) || 0;
-    const targetPoints = tp1Points || tp2Points || 0;
+    const tp3Points = Number(item.tp3Points) || 0;
+    const targetPoints = tp1Points || tp2Points || tp3Points || 0;
     const pointValue = Number(item.pointValue) || Number(state.settings.pointValue) || 1;
     const riskAmount = Number(item.riskAmount) || Number(state.settings.capital || 0) * (Number(state.settings.riskPercent || 0) / 100);
     const lotSize = Number(item.lotSize) || (slPoints > 0 && pointValue > 0 ? riskAmount / (slPoints * pointValue) : 0);
@@ -1240,17 +1268,20 @@ async function importCsv(event) {
       entry,
       exitPrice,
       stopPrice: Number(item.stopPrice) || 0,
-      takeProfit: Number(item.takeProfit) || Number(item.takeProfit1) || Number(item.takeProfit2) || 0,
+      takeProfit: Number(item.takeProfit) || Number(item.takeProfit1) || Number(item.takeProfit2) || Number(item.takeProfit3) || 0,
       takeProfit1: Number(item.takeProfit1) || Number(item.takeProfit) || 0,
       takeProfit2: Number(item.takeProfit2) || 0,
+      takeProfit3: Number(item.takeProfit3) || 0,
       slPoints,
       tpPoints: targetPoints,
       tp1Points,
       tp2Points,
+      tp3Points,
       rawSl: Number(item.rawSl) || slPoints,
       rawTp: Number(item.rawTp) || targetPoints,
       rawTp1: Number(item.rawTp1) || tp1Points,
       rawTp2: Number(item.rawTp2) || tp2Points,
+      rawTp3: Number(item.rawTp3) || tp3Points,
       signalBy: item.signalBy || "",
       pointValue,
       riskAmount,
@@ -1267,7 +1298,7 @@ async function importCsv(event) {
   state.trades = [...imported, ...state.trades];
   saveState();
   render();
-  notify(`${imported.length} trades imported`);
+  notify(`${imported.length} Trades Imported`);
   event.target.value = "";
 }
 
@@ -1275,7 +1306,7 @@ async function resetData() {
   const confirmed = await confirmDialog({
     title: "Reset all data?",
     message: "Reset settings, journal data, and custom columns? This cannot be undone.",
-    confirmText: "reset",
+    confirmText: "Reset",
   });
   if (!confirmed) return;
   stopLivePrice();
@@ -1288,7 +1319,7 @@ async function resetData() {
   startLivePrice();
 }
 
-function confirmDialog({ title, message, confirmText = "confirm" }) {
+function confirmDialog({ title, message, confirmText = "Confirm" }) {
   $("confirmTitle").textContent = title;
   $("confirmMessage").textContent = message;
   $("confirmOk").textContent = confirmText;
@@ -1545,7 +1576,7 @@ function bindEvents() {
     recalculateInlineTrade(trade);
     saveState();
     render();
-    notify("side updated");
+    notify("Trade Updated");
   });
   $("tradeRows").addEventListener("focusin", (event) => {
     const cell = event.target.closest("[data-cell-field]");

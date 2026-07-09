@@ -150,7 +150,7 @@
           <input type="color" value={settings.customInk} on:input={(event) => updateColor('customInk', event.currentTarget.value)} />
         </label>
       </div>
-      <button class="ghost-button" type="button" on:click={resetTheme}>reset custom theme</button>
+      <button class="ghost-button" type="button" on:click={resetTheme}>Reset Custom Theme</button>
     </div>
   </section>
 
@@ -196,11 +196,11 @@
         <p class="settings-note price-source">Import and export your local trade journal as CSV. Reset clears saved trades, rules, custom columns, and workspace settings on this browser.</p>
       </div>
       <div class="section-actions">
-        <button class="ghost-button" type="button" on:click={() => importInput?.click()}>import csv</button>
+        <button class="ghost-button" type="button" on:click={() => importInput?.click()}>Import CSV</button>
         <input bind:this={importInput} type="file" accept=".csv,text/csv" hidden on:change={importCsv} />
-        <button class="ghost-button" type="button" on:click={downloadJournalCsv}>export csv</button>
-        <a class="ghost-button" href="/backups">manage backups</a>
-        <button class="danger-button" type="button" on:click={confirmReset}>reset data</button>
+        <button class="ghost-button" type="button" on:click={downloadJournalCsv}>Export CSV</button>
+        <a class="ghost-button" href="/backups">Manage Backups</a>
+        <button class="danger-button" type="button" on:click={confirmReset}>Reset Data</button>
       </div>
     </div>
   </section>
@@ -208,8 +208,8 @@
   <section class="section-enter">
     <div class="section-heading"><p>05 - legal</p></div>
     <div class="card legal-link-card">
-      <a href="/privacy">privacy policy</a>
-      <a href="/terms">terms and conditions</a>
+      <a href="/privacy">Privacy Policy</a>
+      <a href="/terms">Terms And Conditions</a>
     </div>
   </section>
 </main>
@@ -221,8 +221,8 @@
       <h2 id="settingsConfirmTitle">Reset all data?</h2>
       <p>Reset saved trades, rules, custom columns, and journal settings? This cannot be undone.</p>
       <div class="confirm-actions">
-        <button class="ghost-button" type="button" on:click={closeConfirm}>cancel</button>
-        <button class="danger-button" type="button" on:click={resetAllData}>reset</button>
+        <button class="ghost-button" type="button" on:click={closeConfirm}>Cancel</button>
+        <button class="danger-button" type="button" on:click={resetAllData}>Reset</button>
       </div>
     </div>
   </div>

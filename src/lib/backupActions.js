@@ -1,10 +1,16 @@
 import { SETTINGS_KEY, loadAppSettings, saveAppSettings } from './appSettings.js';
-import { STORAGE_KEY, loadJournalData } from './journalData.js';
+import { RECOVERY_KEY, STORAGE_KEY, loadJournalData } from './journalData.js';
 import { saveJournalData } from './journalActions.js';
 
 export const BACKUP_KEY = 'mindshift-backups:v1';
 export const PINNED_TABS_KEY = 'mindshift-pinned-tabs:v1';
+export const BACKUP_SETTINGS_KEY = 'mindshift-backup-settings:v1';
 const MAX_BACKUPS = 30;
+const defaultBackupSettings = {
+  autoSnapshotsEnabled: true,
+  intervalDays: 7,
+  lastSnapshotAt: ''
+};
 
 export function loadBackups() {
   if (typeof localStorage === 'undefined') return [];
@@ -30,6 +36,36 @@ export function createBackup(label = '') {
   return backup;
 }
 
+export function loadBackupSettings() {
+  if (typeof localStorage === 'undefined') return { ...defaultBackupSettings };
+  try {
+    return normalizeBackupSettings(JSON.parse(localStorage.getItem(BACKUP_SETTINGS_KEY) || '{}'));
+  } catch {
+    return { ...defaultBackupSettings };
+  }
+}
+
+export function saveBackupSettings(settings = {}) {
+  const next = normalizeBackupSettings(settings);
+  localStorage.setItem(BACKUP_SETTINGS_KEY, JSON.stringify(next));
+  window.dispatchEvent(new CustomEvent('backup-settings-change', { detail: next }));
+  return next;
+}
+
+export function createScheduledBackupIfDue(reason = 'Auto Snapshot') {
+  if (typeof localStorage === 'undefined') return null;
+  const settings = loadBackupSettings();
+  if (!settings.autoSnapshotsEnabled) return null;
+
+  const intervalMs = settings.intervalDays * 24 * 60 * 60 * 1000;
+  const lastTime = settings.lastSnapshotAt ? Date.parse(settings.lastSnapshotAt) : 0;
+  if (lastTime && Date.now() - lastTime < intervalMs) return null;
+
+  const backup = createBackup(reason);
+  saveBackupSettings({ ...settings, lastSnapshotAt: backup.createdAt });
+  return backup;
+}
+
 export function restoreBackup(id) {
   const backup = loadBackups().find((item) => item.id === id);
   if (!backup) return { ok: false, message: 'Backup not found.' };
@@ -39,6 +75,13 @@ export function restoreBackup(id) {
   saveAppSettings(snapshot.appSettings || loadAppSettings());
   if (Array.isArray(snapshot.pinnedTabs)) {
     localStorage.setItem(PINNED_TABS_KEY, JSON.stringify(snapshot.pinnedTabs));
+  }
+  if (snapshot.raw?.[BACKUP_SETTINGS_KEY]) {
+    try {
+      saveBackupSettings(JSON.parse(snapshot.raw[BACKUP_SETTINGS_KEY]));
+    } catch {
+      // Ignore malformed backup settings inside imported snapshots.
+    }
   }
   window.dispatchEvent(new CustomEvent('backup-restored', { detail: backup }));
   return { ok: true, backup };
@@ -98,9 +141,20 @@ function createSnapshot() {
     pinnedTabs: readJson(PINNED_TABS_KEY, []),
     raw: {
       [STORAGE_KEY]: localStorage.getItem(STORAGE_KEY) || '',
+      [RECOVERY_KEY]: localStorage.getItem(RECOVERY_KEY) || '',
       [SETTINGS_KEY]: localStorage.getItem(SETTINGS_KEY) || '',
-      [PINNED_TABS_KEY]: localStorage.getItem(PINNED_TABS_KEY) || ''
+      [PINNED_TABS_KEY]: localStorage.getItem(PINNED_TABS_KEY) || '',
+      [BACKUP_SETTINGS_KEY]: localStorage.getItem(BACKUP_SETTINGS_KEY) || ''
     }
+  };
+}
+
+function normalizeBackupSettings(settings = {}) {
+  const intervalDays = Number(settings.intervalDays);
+  return {
+    autoSnapshotsEnabled: settings.autoSnapshotsEnabled !== false,
+    intervalDays: Number.isFinite(intervalDays) ? Math.max(1, Math.min(365, Math.round(intervalDays))) : defaultBackupSettings.intervalDays,
+    lastSnapshotAt: validDate(settings.lastSnapshotAt) ? settings.lastSnapshotAt : ''
   };
 }
 

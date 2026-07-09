@@ -342,7 +342,7 @@
   <section class="section-enter">
     <div class="section-heading">
       <p>04 - recent trades</p>
-      <a class="ghost-button" href="/trades">view all</a>
+      <a class="ghost-button" href="/trades">View All</a>
     </div>
     <div class="journal-table-wrap card">
       <table>
