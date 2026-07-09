@@ -199,6 +199,7 @@
         <button class="ghost-button" type="button" on:click={() => importInput?.click()}>import csv</button>
         <input bind:this={importInput} type="file" accept=".csv,text/csv" hidden on:change={importCsv} />
         <button class="ghost-button" type="button" on:click={downloadJournalCsv}>export csv</button>
+        <a class="ghost-button" href="/backups">manage backups</a>
         <button class="danger-button" type="button" on:click={confirmReset}>reset data</button>
       </div>
     </div>

@@ -10,7 +10,8 @@
     { href: '/dashboard', label: '02 - dashboard' },
     { href: '/trades', label: '03 - trades' },
     { href: '/calculator', label: '04 - calculator' },
-    { href: '/#rules', label: '05 - rules', propFirmOnly: true }
+    { href: '/#rules', label: '05 - rules', propFirmOnly: true },
+    { href: '/backups', label: '06 - backups' }
   ];
 
   const settingsLink = { href: '/settings', label: 'settings' };
@@ -29,21 +30,20 @@
   };
 
   onMount(() => {
-    try {
-      pinned = JSON.parse(localStorage.getItem('mindshift-pinned-tabs:v1') || '[]');
-    } catch {
-      pinned = [];
-    }
-    pinned = pinned.filter((href) => visibleLinks.some((link) => link.href === href));
+    refreshSidebarState();
 
     loadKofiWidget();
+    window.addEventListener('app-settings-change', refreshSidebarState);
+    window.addEventListener('backup-restored', refreshSidebarState);
+    window.addEventListener('storage', refreshSidebarState);
+    return () => {
+      window.removeEventListener('app-settings-change', refreshSidebarState);
+      window.removeEventListener('backup-restored', refreshSidebarState);
+      window.removeEventListener('storage', refreshSidebarState);
+    };
   });
 
-  $: visibleLinks = links.filter((link) => {
-    if (link.propFirmOnly && !appSettings.propFirmEnabled) return false;
-    if (appSettings.simpleMode && (link.href === '/#rules' || link.href === '/calculator')) return false;
-    return true;
-  });
+  $: visibleLinks = links.filter(linkVisible);
   $: autoPinnedLinks = visibleLinks.filter((link) => link.autoPinned);
   $: userPinnedLinks = visibleLinks.filter((link) => !link.autoPinned && pinned.includes(link.href));
   $: pinnedLinks = [...autoPinnedLinks, ...userPinnedLinks];
@@ -52,6 +52,23 @@
   function togglePin(href) {
     pinned = pinned.includes(href) ? pinned.filter((item) => item !== href) : [href, ...pinned].slice(0, 4);
     localStorage.setItem('mindshift-pinned-tabs:v1', JSON.stringify(pinned));
+  }
+
+  function linkVisible(link) {
+    if (link.propFirmOnly && !appSettings.propFirmEnabled) return false;
+    if (appSettings.simpleMode && (link.href === '/#rules' || link.href === '/calculator')) return false;
+    return true;
+  }
+
+  function refreshSidebarState() {
+    appSettings = loadAppSettings();
+    try {
+      pinned = JSON.parse(localStorage.getItem('mindshift-pinned-tabs:v1') || '[]');
+    } catch {
+      pinned = [];
+    }
+    const nextVisibleLinks = links.filter(linkVisible);
+    pinned = pinned.filter((href) => nextVisibleLinks.some((link) => link.href === href));
   }
 
   function isActive(href) {

@@ -2150,6 +2150,54 @@ tr:last-child td {
   gap: 0.75rem;
 }
 
+.backup-create-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: end;
+}
+
+.backup-grid {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.backup-card {
+  display: grid;
+  gap: 1rem;
+}
+
+.backup-card h2 {
+  margin: 0.25rem 0 0;
+  font-size: clamp(1.2rem, 3vw, 1.65rem);
+  line-height: 1.1;
+  text-transform: none;
+}
+
+.backup-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.backup-meta span {
+  border: 1px solid var(--gray-200);
+  border-radius: 999px;
+  background: var(--background);
+  color: var(--gray-500);
+  padding: 0.25rem 0.55rem;
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.empty-backup-card {
+  min-height: 8rem;
+  display: grid;
+  place-items: center;
+}
+
 .legal-copy {
   display: grid;
   gap: 0.9rem;
@@ -2402,6 +2450,12 @@ button:disabled {
 
   .action-row .ghost-button {
     width: max-content;
+  }
+}
+
+@media (max-width: 760px) {
+  .backup-create-card {
+    grid-template-columns: 1fr;
   }
 }
 
