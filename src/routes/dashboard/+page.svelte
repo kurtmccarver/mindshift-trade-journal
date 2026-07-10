@@ -21,6 +21,7 @@
   $: personalRiskMoney = (Number(data.settings.capital) || 0) * ((Number(data.settings.riskPercent) || 0) / 100);
   $: displayTargetAmount = appSettings.propFirmEnabled ? summary.targetAmount : personalTargetAmount;
   $: displayProgress = displayTargetAmount > 0 ? Math.max(0, Math.min(100, (summary.totalPnl / displayTargetAmount) * 100)) : 0;
+  $: currencySymbol = getCurrencySymbol();
   $: resultDistribution = [
     { label: 'wins', value: summary.wins },
     { label: 'losses', value: summary.losses },
@@ -114,7 +115,7 @@
   }
 
   function savePersonalTarget(field, value, options = {}) {
-    const parsed = Number(String(value || '').replace(/[^0-9.-]/g, ''));
+    const parsed = parseEditableNumber(value);
     if (!Number.isFinite(parsed)) return;
     const nextSettings = {
       ...(data.settings || {}),
@@ -173,23 +174,26 @@
   }
 
   function commitPersonalTarget(event, field) {
-    savePersonalTarget(field, event.currentTarget.textContent || '');
+    savePersonalTarget(field, event.currentTarget.value || '');
   }
 
   function inputPersonalTarget(event, field) {
-    savePersonalTarget(field, event.currentTarget.textContent || '', { refresh: false });
+    savePersonalTarget(field, event.currentTarget.value || '', { refresh: false });
   }
 
-  function handleEditableKey(event) {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      event.currentTarget.blur();
-    }
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      event.currentTarget.textContent = event.currentTarget.dataset.originalValue || '';
-      event.currentTarget.blur();
-    }
+  function parseEditableNumber(value) {
+    const parsed = Number(String(value ?? '').replace(/[^0-9.-]/g, ''));
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  function getCurrencySymbol() {
+    const currency = loadAppSettings().currency || 'USD';
+    const symbolPart = new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency,
+      currencyDisplay: 'narrowSymbol'
+    }).formatToParts(0).find((part) => part.type === 'currency');
+    return symbolPart?.value || currency;
   }
 </script>
 
@@ -243,10 +247,28 @@
       <p>02 - personal targets</p>
     </div>
     <div class="stats-grid dashboard-stats">
-      <div><span>capital</span><span class="editable-stat" contenteditable="true" role="textbox" tabindex="0" data-original-value={summary.capital} on:input={(event) => inputPersonalTarget(event, 'capital')} on:keydown={handleEditableKey} on:blur={(event) => commitPersonalTarget(event, 'capital')}>{money(summary.capital)}</span></div>
-      <div><span>risk %</span><span class="editable-stat" contenteditable="true" role="textbox" tabindex="0" data-original-value={data.settings.riskPercent || 0} on:input={(event) => inputPersonalTarget(event, 'riskPercent')} on:keydown={handleEditableKey} on:blur={(event) => commitPersonalTarget(event, 'riskPercent')}>{Number(data.settings.riskPercent || 0)}%</span></div>
+      <div>
+        <span>capital</span>
+        <label class="editable-stat-input">
+          <em>{currencySymbol}</em>
+          <input type="number" min="0" step="1" value={Number(summary.capital) || 0} on:input={(event) => inputPersonalTarget(event, 'capital')} on:blur={(event) => commitPersonalTarget(event, 'capital')} />
+        </label>
+      </div>
+      <div>
+        <span>risk %</span>
+        <label class="editable-stat-input suffix">
+          <input type="number" min="0" step="0.1" value={Number(data.settings.riskPercent) || 0} on:input={(event) => inputPersonalTarget(event, 'riskPercent')} on:blur={(event) => commitPersonalTarget(event, 'riskPercent')} />
+          <em>%</em>
+        </label>
+      </div>
       <div><span>risk money</span><strong class="editable-stat is-computed">{money(personalRiskMoney)}</strong></div>
-      <div><span>target profit</span><span class="editable-stat" contenteditable="true" role="textbox" tabindex="0" data-original-value={personalTargetAmount} on:input={(event) => inputPersonalTarget(event, 'targetProfitMoney')} on:keydown={handleEditableKey} on:blur={(event) => commitPersonalTarget(event, 'targetProfitMoney')}>{money(personalTargetAmount)}</span></div>
+      <div>
+        <span>target profit</span>
+        <label class="editable-stat-input">
+          <em>{currencySymbol}</em>
+          <input type="number" min="0" step="1" value={Number(personalTargetAmount) || 0} on:input={(event) => inputPersonalTarget(event, 'targetProfitMoney')} on:blur={(event) => commitPersonalTarget(event, 'targetProfitMoney')} />
+        </label>
+      </div>
     </div>
   </section>
 

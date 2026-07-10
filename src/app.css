@@ -2112,6 +2112,54 @@ tr:last-child td {
   opacity: 0.86;
 }
 
+.editable-stat-input {
+  align-items: baseline;
+  border-radius: 8px;
+  display: inline-flex;
+  gap: 0.05rem;
+  max-width: 100%;
+  padding: 0.08rem 0.18rem;
+}
+
+.editable-stat-input:hover {
+  background: var(--secondary-soft);
+}
+
+.editable-stat-input:focus-within {
+  background: var(--background);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--secondary) 35%, transparent);
+}
+
+.editable-stat-input em,
+.editable-stat-input input {
+  color: var(--ink);
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: clamp(1.65rem, 4vw, 2.25rem);
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.08;
+}
+
+.editable-stat-input input {
+  background: transparent;
+  border: 0;
+  min-width: 0;
+  outline: 0;
+  padding: 0;
+  width: min(9ch, 100%);
+}
+
+.editable-stat-input.suffix input {
+  width: min(5ch, 100%);
+}
+
+.editable-stat-input input::-webkit-inner-spin-button,
+.editable-stat-input input::-webkit-outer-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
 .delete-custom {
   border: 1px solid var(--gray-200);
   border-radius: 999px;
