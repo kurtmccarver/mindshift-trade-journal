@@ -307,7 +307,6 @@
           <col class="trade-col-risk" />
           <col class="trade-col-small" />
           <col class="trade-col-small" />
-          <col class="trade-col-small" />
           <col class="trade-col-result" />
           <col class="trade-col-pnl" />
           {#each visibleCustomColumns as column}
@@ -326,7 +325,6 @@
             <th>SL</th>
             <th>Risk</th>
             <th>PnL %</th>
-            <th>Lots</th>
             <th>RR</th>
             <th>Result</th>
             <th>PnL</th>
@@ -354,7 +352,6 @@
                 <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.stopPrice || ''} on:input={(event) => saveCellDraft(event, trade.id, 'stopPrice')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'stopPrice')}>{number(trade.stopPrice)}</span></td>
                 <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.riskAmount || ''} on:input={(event) => saveCellDraft(event, trade.id, 'riskAmount')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'riskAmount')}>{money(trade.riskAmount)}</span></td>
                 <td><span class={`editable-cell ${pnlTone(trade.pnlPercent)}`} contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.pnlPercent || ''} on:input={(event) => saveCellDraft(event, trade.id, 'pnlPercent')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'pnlPercent')}>{Number(trade.pnlPercent || 0).toFixed(2)}%</span></td>
-                <td>{Number(trade.lotSize || 0).toFixed(2)}</td>
                 <td>{Number(trade.rr || 0).toFixed(2)}R</td>
                 <td>
                   <button class={`result-toggle-cell ${trade.result || 'open'}`} type="button" aria-label={`Toggle ${trade.symbol || 'trade'} result`} title="Toggle Result" on:click={() => toggleResult(trade.id, trade.result || 'open')}>
@@ -381,7 +378,7 @@
               </tr>
             {/each}
           {:else}
-            <tr><td colspan={14 + visibleCustomColumns.length}>No trades match the current filters.</td></tr>
+            <tr><td colspan={13 + visibleCustomColumns.length}>No trades match the current filters.</td></tr>
           {/if}
         </tbody>
       </table>

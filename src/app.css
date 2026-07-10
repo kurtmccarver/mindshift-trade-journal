@@ -1535,32 +1535,32 @@ input.live-price-panel {
 }
 
 .trade-col-date {
-  width: 7%;
+  width: 7.5%;
 }
 
 .trade-col-token {
-  width: 8%;
+  width: 9.5%;
 }
 
 .trade-col-side {
-  width: 6%;
+  width: 6.5%;
 }
 
 .trade-col-price {
-  width: 6%;
+  width: 7%;
 }
 
 .trade-col-risk,
 .trade-col-pnl {
-  width: 7%;
+  width: 8%;
 }
 
 .trade-col-small {
-  width: 4.8%;
+  width: 5.5%;
 }
 
 .trade-col-result {
-  width: 7.5%;
+  width: 8.5%;
 }
 
 .trade-col-custom {
@@ -1568,7 +1568,7 @@ input.live-price-panel {
 }
 
 .trade-col-notes {
-  width: 20%;
+  width: 15%;
 }
 
 .trade-col-action {
