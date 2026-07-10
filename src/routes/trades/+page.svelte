@@ -31,6 +31,7 @@
     { value: 'loss', label: 'Loss' },
     { value: 'breakeven', label: 'Breakeven' }
   ];
+  const resultCycle = resultOptions.map((option) => option.value);
 
   $: filteredTrades = data.trades.filter((trade) => matchesFilters(trade, pairFilter, sideFilter, notesFilter, fromDate, toDate));
   $: visibleCustomColumns = (data.customColumns || []).filter((column) => !/^(margin|caller|leverage)$/i.test(column.label || column.key || ''));
@@ -201,6 +202,22 @@
     data = next;
     summary = summarizeJournal(next);
     window.dispatchEvent(new CustomEvent('mindshift-notify', { detail: { message: 'Trade Updated' } }));
+  }
+
+  function toggleResult(tradeId, currentResult) {
+    const currentIndex = resultCycle.indexOf(currentResult || 'open');
+    const nextIndex = currentIndex >= 0 ? (currentIndex + 1) % resultCycle.length : 0;
+    updateTradeCell(tradeId, 'result', resultCycle[nextIndex]);
+  }
+
+  function resultArrow(result) {
+    if (result === 'win') return '↑';
+    if (result === 'loss') return '↓';
+    return '→';
+  }
+
+  function resultLabel(result) {
+    return resultOptions.find((option) => option.value === result)?.label || 'Open';
   }
 
   function applyTradeValue(trade, field, value) {
@@ -412,7 +429,10 @@
                 <td>{Number(trade.lotSize || 0).toFixed(2)}</td>
                 <td>{Number(trade.rr || 0).toFixed(2)}R</td>
                 <td>
-                  <CustomSelect value={trade.result || 'open'} options={resultOptions} ariaLabel="Trade result" on:change={(event) => updateTradeCell(trade.id, 'result', event.detail)} />
+                  <button class={`result-toggle-cell ${trade.result || 'open'}`} type="button" aria-label={`Toggle ${trade.symbol || 'trade'} result`} title="Toggle Result" on:click={() => toggleResult(trade.id, trade.result || 'open')}>
+                    <span aria-hidden="true">{resultArrow(trade.result || 'open')}</span>
+                    {resultLabel(trade.result || 'open')}
+                  </button>
                 </td>
                 <td><span class={`editable-cell ${pnlTone(getTradePnl(trade))}`} contenteditable="true" role="textbox" tabindex="0" data-original-value={getTradePnl(trade)} on:input={(event) => saveCellDraft(event, trade.id, 'pnl')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'pnl')}>{money(getTradePnl(trade))}</span></td>
                 {#each visibleCustomColumns as column}

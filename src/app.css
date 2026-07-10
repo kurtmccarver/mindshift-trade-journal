@@ -1535,28 +1535,28 @@ input.live-price-panel {
 }
 
 .trade-col-date {
-  width: 7%;
+  width: 7.5%;
 }
 
 .trade-col-token {
-  width: 7%;
+  width: 9%;
 }
 
 .trade-col-side {
-  width: 6%;
+  width: 6.5%;
 }
 
 .trade-col-price,
 .trade-col-pnl {
-  width: 5.5%;
+  width: 6.5%;
 }
 
 .trade-col-small {
-  width: 4.5%;
+  width: 5.5%;
 }
 
 .trade-col-result {
-  width: 6%;
+  width: 8%;
 }
 
 .trade-col-custom {
@@ -1573,7 +1573,7 @@ input.live-price-panel {
 
 .trades-table th,
 .trades-table td {
-  padding: 0.62rem 0.34rem;
+  padding: 0.52rem 0.34rem;
   white-space: normal;
   overflow-wrap: anywhere;
   word-break: break-word;
@@ -1603,17 +1603,17 @@ input.live-price-panel {
 
 .trades-table .notes-editor {
   width: 100%;
-  min-height: 3rem;
-  padding: 0.42rem 0.5rem;
+  min-height: 2.25rem;
+  padding: 0.36rem 0.45rem;
 }
 
-.side-toggle-cell {
+.side-toggle-cell,
+.result-toggle-cell {
   display: inline-flex;
   align-items: center;
   gap: 0.28rem;
   border: 0;
   background: transparent;
-  color: var(--secondary);
   font-family: "Geist Mono", ui-monospace, monospace;
   font-size: 11px;
   font-weight: 800;
@@ -1621,7 +1621,8 @@ input.live-price-panel {
   padding: 0;
 }
 
-.side-toggle-cell span {
+.side-toggle-cell span,
+.result-toggle-cell span {
   font-size: 0.8rem;
   line-height: 1;
 }
@@ -1632,6 +1633,22 @@ input.live-price-panel {
 
 .side-toggle-cell.short {
   color: var(--danger);
+}
+
+.result-toggle-cell.open {
+  color: #eab308;
+}
+
+.result-toggle-cell.win {
+  color: var(--secondary);
+}
+
+.result-toggle-cell.loss {
+  color: var(--danger);
+}
+
+.result-toggle-cell.breakeven {
+  color: #a855f7;
 }
 
 .trades-table td .select-shell {
