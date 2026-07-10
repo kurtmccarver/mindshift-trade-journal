@@ -195,6 +195,10 @@
     }).formatToParts(0).find((part) => part.type === 'currency');
     return symbolPart?.value || currency;
   }
+
+  function digitCount(value) {
+    return Math.max(1, String(value ?? '').length);
+  }
 </script>
 
 <svelte:head>
@@ -257,7 +261,7 @@
       <div>
         <span>risk %</span>
         <label class="editable-stat-input suffix">
-          <input type="number" min="0" step="0.1" value={Number(data.settings.riskPercent) || 0} on:input={(event) => inputPersonalTarget(event, 'riskPercent')} on:blur={(event) => commitPersonalTarget(event, 'riskPercent')} />
+          <input style={`--digits: ${digitCount(Number(data.settings.riskPercent) || 0)}`} type="number" min="0" step="0.1" value={Number(data.settings.riskPercent) || 0} on:input={(event) => inputPersonalTarget(event, 'riskPercent')} on:blur={(event) => commitPersonalTarget(event, 'riskPercent')} />
           <em>%</em>
         </label>
       </div>

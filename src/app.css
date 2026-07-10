@@ -2116,7 +2116,7 @@ tr:last-child td {
   align-items: baseline;
   border-radius: 8px;
   display: inline-flex;
-  gap: 0.05rem;
+  gap: 0;
   max-width: 100%;
   padding: 0.08rem 0.18rem;
 }
@@ -2147,11 +2147,16 @@ tr:last-child td {
   min-width: 0;
   outline: 0;
   padding: 0;
-  width: min(9ch, 100%);
+  width: 7ch;
 }
 
 .editable-stat-input.suffix input {
-  width: min(5ch, 100%);
+  flex: 0 1 auto;
+  width: calc((var(--digits, 1) * 0.62em) + 0.08em);
+}
+
+.editable-stat-input.suffix em {
+  margin-left: 0.02em;
 }
 
 .editable-stat-input input::-webkit-inner-spin-button,
