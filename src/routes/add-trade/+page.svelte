@@ -40,9 +40,9 @@
       symbol: '',
       direction: 'long',
       measurementMode: 'price',
-      entry: 0,
-      exitPrice: 0,
-      stopPrice: 0,
+      entry: '',
+      exitPrice: '',
+      stopPrice: '',
       slPoints: 0,
       pointValue: '',
       riskAmount: '',
@@ -140,7 +140,7 @@
       {#if status}<span class="status-chip is-active">{status}</span>{/if}
     </div>
     <div class="card add-trade-card add-trade-form-card">
-      <div class="add-trade-form">
+      <form class="add-trade-form" on:submit|preventDefault={addTrade}>
         <div class="side-toggle-row" aria-label="Trade side">
           {#each sideOptions as option}
             <button
@@ -157,30 +157,30 @@
         <div class="form-row two-cols">
           <label class="field">
             <span>token</span>
-            <input bind:value={trade.symbol} type="text" maxlength="32" placeholder="BTCUSDT" />
+            <input bind:value={trade.symbol} type="text" maxlength="32" placeholder="BTCUSDT" required />
           </label>
           <label class="field date-field">
             <span>date</span>
-            <input bind:value={trade.date} type="date" />
+            <input bind:value={trade.date} type="date" required />
           </label>
         </div>
 
         <div class="form-row price-row simple-price-row">
           <label class="field">
             <span>entry</span>
-            <input bind:value={trade.entry} type="number" min="0" step="0.00001" />
+            <input bind:value={trade.entry} type="text" inputmode="decimal" placeholder={money(0)} required />
           </label>
           <label class="field">
             <span>sl</span>
-            <input bind:value={trade.stopPrice} type="number" min="0" step="0.00001" />
+            <input bind:value={trade.stopPrice} type="text" inputmode="decimal" placeholder={money(0)} required />
           </label>
           <label class="field">
             <span>exit</span>
-            <input bind:value={trade.exitPrice} type="number" min="0" step="0.00001" />
+            <input bind:value={trade.exitPrice} type="text" inputmode="decimal" placeholder={money(0)} required />
           </label>
           <label class="field">
             <span>risk</span>
-            <input bind:value={trade.riskAmount} type="text" inputmode="decimal" placeholder={money(accountRiskAmount)} />
+            <input bind:value={trade.riskAmount} type="text" inputmode="decimal" placeholder={money(accountRiskAmount)} required />
           </label>
         </div>
 
@@ -189,8 +189,8 @@
           <textarea bind:value={trade.notes} rows="4" placeholder="Setup, emotion, execution..."></textarea>
         </label>
 
-        <button class="primary-button wide" type="button" on:click={addTrade}>Add Trade</button>
-      </div>
+        <button class="primary-button wide" type="submit">Add Trade</button>
+      </form>
     </div>
   </section>
 </main>
