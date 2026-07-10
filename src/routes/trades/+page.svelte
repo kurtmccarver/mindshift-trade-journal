@@ -112,8 +112,7 @@
     } else if (field === 'pnl') {
       trade.pnl = parseNumber(value);
       trade.manualPnl = true;
-      const margin = Number(trade.margin) || Number(trade.riskAmount) || 0;
-      trade.pnlPercent = margin > 0 ? (trade.pnl / margin) * 100 : Number(trade.pnlPercent) || 0;
+      trade.pnlPercent = calculatePnlPercent(trade);
     } else if (field === 'result') {
       trade.result = ['open', 'win', 'loss', 'breakeven'].includes(value) ? value : 'open';
     }
@@ -165,8 +164,7 @@
     } else if (field === 'pnl') {
       trade.pnl = parseNumber(value);
       trade.manualPnl = true;
-      const margin = Number(trade.margin) || Number(trade.riskAmount) || 0;
-      trade.pnlPercent = margin > 0 ? (trade.pnl / margin) * 100 : Number(trade.pnlPercent) || 0;
+      trade.pnlPercent = calculatePnlPercent(trade);
     } else if (field === 'result') {
       trade.result = ['open', 'win', 'loss', 'breakeven'].includes(value) ? value : 'open';
     }
@@ -198,10 +196,13 @@
     trade.lotSize = slPoints > 0 && pointValue > 0 ? riskAmount / (slPoints * pointValue) : 0;
     trade.rr = slPoints > 0 && exitPoints > 0 ? exitPoints / slPoints : Number(trade.rr) || 0;
 
-    if (trade.manualPnl) return;
+    if (trade.manualPnl) {
+      trade.pnlPercent = calculatePnlPercent(trade);
+      return;
+    }
     if (!trade.manualPnl && Number(trade.exitPrice) > 0 && Number(trade.entry) > 0) {
       trade.pnl = (trade.direction === 'short' ? trade.entry - trade.exitPrice : trade.exitPrice - trade.entry) * trade.lotSize * pointValue;
-      trade.pnlPercent = riskAmount > 0 ? (trade.pnl / riskAmount) * 100 : 0;
+      trade.pnlPercent = calculatePnlPercent(trade);
       trade.result = trade.pnl > 0 ? 'win' : trade.pnl < 0 ? 'loss' : 'breakeven';
     } else if (trade.result === 'win') {
       trade.pnl = trade.estimatedGain;
@@ -215,6 +216,20 @@
   function parseNumber(value) {
     const parsed = Number(String(value || '').replace(/[^0-9.-]/g, ''));
     return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  function calculatePnlPercent(trade) {
+    const entry = Number(trade.entry) || 0;
+    const exitPrice = Number(trade.exitPrice) || 0;
+    if (entry <= 0 || exitPrice <= 0) return Number(trade.pnlPercent) || 0;
+    const priceMove = trade.direction === 'short' ? entry - exitPrice : exitPrice - entry;
+    return (priceMove / entry) * 100;
+  }
+
+  function displayPnlPercent(trade) {
+    const value = calculatePnlPercent(trade);
+    if (!Number.isFinite(value)) return '0.00%';
+    return `${value.toFixed(2)}%`;
   }
 
   function pnlTone(value) {
@@ -351,7 +366,7 @@
                 <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.exitPrice || ''} on:input={(event) => saveCellDraft(event, trade.id, 'exitPrice')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'exitPrice')}>{trade.exitPrice ? number(trade.exitPrice) : ''}</span></td>
                 <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.stopPrice || ''} on:input={(event) => saveCellDraft(event, trade.id, 'stopPrice')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'stopPrice')}>{number(trade.stopPrice)}</span></td>
                 <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.riskAmount || ''} on:input={(event) => saveCellDraft(event, trade.id, 'riskAmount')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'riskAmount')}>{money(trade.riskAmount)}</span></td>
-                <td><span class={`editable-cell ${pnlTone(trade.pnlPercent)}`} contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.pnlPercent || ''} on:input={(event) => saveCellDraft(event, trade.id, 'pnlPercent')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'pnlPercent')}>{Number(trade.pnlPercent || 0).toFixed(2)}%</span></td>
+                <td><span class={`editable-cell ${pnlTone(calculatePnlPercent(trade))}`} contenteditable="true" role="textbox" tabindex="0" data-original-value={calculatePnlPercent(trade)} on:input={(event) => saveCellDraft(event, trade.id, 'pnlPercent')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'pnlPercent')}>{displayPnlPercent(trade)}</span></td>
                 <td>{Number(trade.rr || 0).toFixed(2)}R</td>
                 <td>
                   <button class={`result-toggle-cell ${trade.result || 'open'}`} type="button" aria-label={`Toggle ${trade.symbol || 'trade'} result`} title="Toggle Result" on:click={() => toggleResult(trade.id, trade.result || 'open')}>

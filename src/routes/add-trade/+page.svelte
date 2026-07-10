@@ -26,7 +26,7 @@
   $: autoPnl = Number(trade.exitPrice) > 0 && Number(trade.entry) > 0
     ? (trade.direction === 'short' ? Number(trade.entry) - Number(trade.exitPrice) : Number(trade.exitPrice) - Number(trade.entry)) * lotSize * effectivePointValue
     : 0;
-  $: pnlPercent = riskAmount > 0 ? (autoPnl / riskAmount) * 100 : 0;
+  $: pnlPercent = calculatePnlPercent(trade);
 
   onMount(() => {
     data = loadJournalData();
@@ -60,6 +60,14 @@
   function parseNumber(value) {
     const parsed = Number(String(value || '').replace(/[^0-9.-]/g, ''));
     return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  function calculatePnlPercent(item) {
+    const entry = parseNumber(item.entry);
+    const exitPrice = parseNumber(item.exitPrice);
+    if (entry <= 0 || exitPrice <= 0) return 0;
+    const priceMove = item.direction === 'short' ? entry - exitPrice : exitPrice - entry;
+    return (priceMove / entry) * 100;
   }
 
   function addTrade() {

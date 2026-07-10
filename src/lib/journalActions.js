@@ -143,24 +143,22 @@ export function importJournalCsv(text) {
   const imported = records
     .map((record) => {
       const item = Object.fromEntries(keys.map((key, index) => [key, record[index] ?? '']));
-      const entry = Number(item.entry) || 0;
-      const exitPrice = Number(item.exitPrice) || 0;
-      const stopPrice = Number(item.stopPrice) || Number(item.rawSl) || 0;
-      const slPoints = Number(item.slPoints) || (entry > 0 && stopPrice > 0 ? Math.abs(entry - stopPrice) : 0);
-      const pointValue = Number(item.pointValue) || Number(data.settings?.pointValue) || 1;
-      const margin = Number(item.margin) || Number(item.riskAmount) || Number(data.settings?.capital || 0) * (Number(data.settings?.riskPercent || 0) / 100);
-      const riskAmount = Number(item.riskAmount) || margin;
-      const lotSize = Number(item.lotSize) || (slPoints > 0 && pointValue > 0 ? riskAmount / (slPoints * pointValue) : 0);
+      const entry = parseNumber(item.entry);
+      const exitPrice = parseNumber(item.exitPrice);
+      const stopPrice = parseNumber(item.stopPrice) || parseNumber(item.rawSl);
+      const slPoints = parseNumber(item.slPoints) || (entry > 0 && stopPrice > 0 ? Math.abs(entry - stopPrice) : 0);
+      const pointValue = parseNumber(item.pointValue) || Number(data.settings?.pointValue) || 1;
+      const margin = parseNumber(item.margin) || parseNumber(item.riskAmount) || Number(data.settings?.capital || 0) * (Number(data.settings?.riskPercent || 0) / 100);
+      const riskAmount = parseNumber(item.riskAmount) || margin;
+      const lotSize = parseNumber(item.lotSize) || (slPoints > 0 && pointValue > 0 ? riskAmount / (slPoints * pointValue) : 0);
       const direction = item.direction || 'long';
       const result = normalizeResult(item.result);
       const pnl = exitPrice > 0
         ? (direction === 'long' ? exitPrice - entry : entry - exitPrice) * lotSize * pointValue
         : Number(item.pnl) || null;
-      const pnlPercent = item.pnlPercent !== undefined && item.pnlPercent !== ''
-        ? Number(item.pnlPercent) || 0
-        : margin > 0 && pnl !== null
-          ? (pnl / margin) * 100
-          : 0;
+      const pnlPercent = entry > 0 && exitPrice > 0
+        ? ((direction === 'short' ? entry - exitPrice : exitPrice - entry) / entry) * 100
+        : parseNumber(item.pnlPercent);
 
       return {
         id: createId(),
@@ -181,7 +179,7 @@ export function importJournalCsv(text) {
         tp1Points: 0,
         tp2Points: 0,
         tp3Points: 0,
-        rawSl: Number(item.rawSl) || stopPrice || slPoints,
+        rawSl: parseNumber(item.rawSl) || stopPrice || slPoints,
         rawTp: 0,
         rawTp1: 0,
         rawTp2: 0,
@@ -191,8 +189,8 @@ export function importJournalCsv(text) {
         pointValue,
         riskAmount,
         lotSize,
-        rr: Number(item.rr) || 0,
-        estimatedGain: Number(item.estimatedGain) || 0,
+        rr: parseNumber(item.rr),
+        estimatedGain: parseNumber(item.estimatedGain),
         pnlPercent,
         pnl,
         result: result || (pnl > 0 ? 'win' : pnl < 0 ? 'loss' : 'open'),
@@ -209,6 +207,11 @@ export function importJournalCsv(text) {
   };
   saveJournalData(next);
   return { data: next, count: imported.length };
+}
+
+function parseNumber(value) {
+  const parsed = Number(String(value || '').replace(/[^0-9.-]/g, ''));
+  return Number.isFinite(parsed) ? parsed : 0;
 }
 
 function normalizeResult(value) {
