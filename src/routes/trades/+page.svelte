@@ -400,7 +400,10 @@
                 <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.date || ''} on:input={(event) => saveCellDraft(event, trade.id, 'date')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'date')}>{date(trade.date)}</span></td>
                 <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.symbol || ''} on:input={(event) => saveCellDraft(event, trade.id, 'symbol')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'symbol')}>{trade.symbol}</span></td>
                 <td>
-                  <CustomSelect value={trade.direction || 'long'} options={sideOptions} tone={trade.direction || 'long'} ariaLabel="Trade side" on:change={(event) => updateTradeCell(trade.id, 'direction', event.detail)} />
+                  <button class={`side-toggle-cell ${trade.direction === 'short' ? 'short' : 'long'}`} type="button" aria-label={`Toggle ${trade.symbol || 'trade'} side`} title="Toggle Side" on:click={() => updateTradeCell(trade.id, 'direction', trade.direction === 'short' ? 'long' : 'short')}>
+                    <span aria-hidden="true">{trade.direction === 'short' ? '↓' : '↑'}</span>
+                    {trade.direction === 'short' ? 'Short' : 'Long'}
+                  </button>
                 </td>
                 <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.entry || ''} on:input={(event) => saveCellDraft(event, trade.id, 'entry')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'entry')}>{number(trade.entry)}</span></td>
                 <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.exitPrice || ''} on:input={(event) => saveCellDraft(event, trade.id, 'exitPrice')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'exitPrice')}>{trade.exitPrice ? number(trade.exitPrice) : ''}</span></td>

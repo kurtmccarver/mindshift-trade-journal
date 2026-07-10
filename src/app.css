@@ -51,7 +51,9 @@ body {
   color: var(--ink);
   font-family: "Geist", system-ui, sans-serif;
   font-size: 17px;
-  transition: background-color 500ms ease, color 500ms ease;
+  transition:
+    background-color 500ms ease,
+    color 500ms ease;
   animation: app-load 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
@@ -60,7 +62,12 @@ body {
 :root[data-font="system"] input,
 :root[data-font="system"] select,
 :root[data-font="system"] textarea {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
 }
 
 :root[data-font="mono"] body,
@@ -242,7 +249,9 @@ a {
   letter-spacing: 1px;
   text-decoration: none;
   text-transform: uppercase;
-  transition: color 200ms ease, transform 200ms ease;
+  transition:
+    color 200ms ease,
+    transform 200ms ease;
 }
 
 .sidebar-settings:hover,
@@ -322,7 +331,9 @@ a {
   font-size: 11px !important;
   letter-spacing: 0.5px !important;
   text-transform: uppercase;
-  transition: opacity 200ms ease, transform 200ms ease !important;
+  transition:
+    opacity 200ms ease,
+    transform 200ms ease !important;
 }
 
 .sidebar-kofi .kofi-button:hover {
@@ -343,7 +354,9 @@ a {
   letter-spacing: 1px;
   text-decoration: none;
   text-transform: uppercase;
-  transition: color 200ms ease, transform 200ms ease;
+  transition:
+    color 200ms ease,
+    transform 200ms ease;
 }
 
 .sidebar-bottom a:hover {
@@ -389,7 +402,9 @@ th,
 .sidebar nav a {
   color: var(--gray-500);
   text-decoration: none;
-  transition: color 200ms ease, transform 200ms ease;
+  transition:
+    color 200ms ease,
+    transform 200ms ease;
 }
 
 .nav-item button {
@@ -427,7 +442,10 @@ th,
 .primary-button {
   border: 1px solid var(--gray-200);
   border-radius: 8px;
-  transition: transform 200ms ease, border-color 200ms ease, background-color 200ms ease;
+  transition:
+    transform 200ms ease,
+    border-color 200ms ease,
+    background-color 200ms ease;
 }
 
 .ghost-button {
@@ -587,7 +605,9 @@ section + section {
   background: var(--gray-50);
   box-shadow: var(--shadow);
   padding: 1.25rem;
-  transition: transform 420ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 350ms ease;
+  transition:
+    transform 420ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 350ms ease;
 }
 
 .card:hover {
@@ -624,7 +644,8 @@ section + section {
 
 .phase-panel.is-active {
   border-color: var(--secondary);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--secondary) 35%, transparent);
+  box-shadow: inset 0 0 0 1px
+    color-mix(in srgb, var(--secondary) 35%, transparent);
 }
 
 label {
@@ -647,7 +668,9 @@ textarea {
   padding: 0.72rem 0.75rem;
   font-size: 1rem;
   outline: none;
-  transition: border-color 200ms ease, background-color 500ms ease;
+  transition:
+    border-color 200ms ease,
+    background-color 500ms ease;
 }
 
 input::placeholder,
@@ -703,7 +726,9 @@ select {
     calc(100% - 1.08rem) 50%,
     calc(100% - 0.76rem) 50%;
   background-repeat: no-repeat;
-  background-size: 0.34rem 0.34rem, 0.34rem 0.34rem;
+  background-size:
+    0.34rem 0.34rem,
+    0.34rem 0.34rem;
   cursor: pointer;
 }
 
@@ -830,7 +855,10 @@ textarea {
   border-radius: 7px;
   background: var(--background);
   transform: translateY(-50%);
-  transition: background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
 }
 
 .app-checkbox.pretty .state label::after {
@@ -873,7 +901,10 @@ textarea {
   border-radius: 5px;
   background: var(--background);
   cursor: pointer;
-  transition: background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
 }
 
 .check-row input::after {
@@ -987,7 +1018,10 @@ textarea {
   color: var(--gray-500);
   padding: 0.18rem 0.45rem;
   font-size: 11px;
-  transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease;
+  transition:
+    background-color 200ms ease,
+    border-color 200ms ease,
+    color 200ms ease;
 }
 
 .delete-custom-column:hover {
@@ -1039,7 +1073,10 @@ textarea {
   color: var(--ink);
   padding: 0.72rem 0.8rem;
   text-align: left;
-  transition: border-color 200ms ease, transform 200ms ease, background-color 200ms ease;
+  transition:
+    border-color 200ms ease,
+    transform 200ms ease,
+    background-color 200ms ease;
 }
 
 .search-result:hover {
@@ -1206,7 +1243,10 @@ input.live-price-panel {
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 200ms ease, background-color 200ms ease, color 200ms ease;
+  transition:
+    transform 200ms ease,
+    background-color 200ms ease,
+    color 200ms ease;
 }
 
 .danger-button:hover {
@@ -1415,7 +1455,9 @@ input.live-price-panel {
   outline: none;
   stroke: var(--background);
   stroke-width: 0.85;
-  transition: opacity 160ms ease, transform 160ms ease;
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
   transform-origin: 50% 50%;
 }
 
@@ -1522,7 +1564,7 @@ input.live-price-panel {
 }
 
 .trade-col-notes {
-  width: 30%;
+  width: 20%;
 }
 
 .trade-col-action {
@@ -1563,6 +1605,33 @@ input.live-price-panel {
   width: 100%;
   min-height: 3rem;
   padding: 0.42rem 0.5rem;
+}
+
+.side-toggle-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  border: 0;
+  background: transparent;
+  color: var(--secondary);
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  padding: 0;
+}
+
+.side-toggle-cell span {
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
+.side-toggle-cell.long {
+  color: var(--secondary);
+}
+
+.side-toggle-cell.short {
+  color: var(--danger);
 }
 
 .trades-table td .select-shell {
@@ -1687,7 +1756,10 @@ input.live-price-panel {
   background: color-mix(in srgb, var(--gray-50) 82%, var(--background));
   color: var(--gray-500);
   font-weight: 800;
-  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
 }
 
 .side-toggle-row button.active.long {
@@ -1797,7 +1869,10 @@ input.live-price-panel {
 
 .inline-price-stack {
   display: grid;
-  grid-template-columns: minmax(3.5rem, 1fr) auto minmax(3.5rem, 1fr) auto minmax(3.5rem, 1fr);
+  grid-template-columns: minmax(3.5rem, 1fr) auto minmax(
+      3.5rem,
+      1fr
+    ) auto minmax(3.5rem, 1fr);
   align-items: center;
   gap: 0.35rem;
 }
@@ -1912,7 +1987,10 @@ tr:last-child td {
   color: var(--gray-500);
   padding: 0.28rem 0.55rem;
   cursor: pointer;
-  transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease;
+  transition:
+    background-color 200ms ease,
+    border-color 200ms ease,
+    color 200ms ease;
 }
 
 .delete-trade:hover,
@@ -1932,7 +2010,9 @@ tr:last-child td {
   margin-right: 0.35rem;
   padding: 0.28rem 0.55rem;
   cursor: pointer;
-  transition: border-color 200ms ease, color 200ms ease;
+  transition:
+    border-color 200ms ease,
+    color 200ms ease;
 }
 
 .edit-trade:hover {
@@ -2045,7 +2125,9 @@ tr:last-child td {
   color: var(--ink);
   padding: 0.72rem 0.75rem;
   text-align: left;
-  transition: border-color 200ms ease, background-color 200ms ease;
+  transition:
+    border-color 200ms ease,
+    background-color 200ms ease;
 }
 
 .select-trigger::after {
@@ -2055,7 +2137,9 @@ tr:last-child td {
   border-right: 1.5px solid var(--gray-500);
   border-bottom: 1.5px solid var(--gray-500);
   transform: rotate(45deg) translateY(-2px);
-  transition: transform 200ms ease, border-color 200ms ease;
+  transition:
+    transform 200ms ease,
+    border-color 200ms ease;
 }
 
 .select-shell.is-open .select-trigger {
@@ -2100,7 +2184,9 @@ tr:last-child td {
   color: var(--gray-500);
   padding: 0.62rem 0.7rem;
   text-align: left;
-  transition: background-color 200ms ease, color 200ms ease;
+  transition:
+    background-color 200ms ease,
+    color 200ms ease;
 }
 
 .select-option:hover,
@@ -2239,7 +2325,10 @@ tr:last-child td {
   background: var(--gray-50);
   cursor: pointer;
   padding: 0.9rem;
-  transition: border-color 180ms ease, background-color 180ms ease, transform 180ms ease;
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    transform 180ms ease;
 }
 
 .mode-choice label:hover,
@@ -2424,7 +2513,9 @@ tr:last-child td {
 .trades-table .mini-check {
   opacity: 0;
   transform: scale(0.92);
-  transition: opacity 160ms ease, transform 160ms ease;
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
 }
 
 .trades-table:hover thead .mini-check,
@@ -2458,7 +2549,10 @@ tr:last-child td {
   border-radius: 7px;
   background: var(--background);
   cursor: pointer;
-  transition: background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
 }
 
 .mini-check span::after {
@@ -2654,7 +2748,9 @@ button:disabled {
   }
 
   .page-shell {
-    margin-left: calc(14rem + ((100vw - 14rem - min(74rem, calc(100vw - 14rem - 1.5rem))) / 2));
+    margin-left: calc(
+      14rem + ((100vw - 14rem - min(74rem, calc(100vw - 14rem - 1.5rem))) / 2)
+    );
     padding: 1.25rem 0.75rem 8rem;
   }
 }
