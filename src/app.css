@@ -1535,28 +1535,32 @@ input.live-price-panel {
 }
 
 .trade-col-date {
-  width: 7.5%;
+  width: 7%;
 }
 
 .trade-col-token {
-  width: 9%;
+  width: 8%;
 }
 
 .trade-col-side {
-  width: 6.5%;
+  width: 6%;
 }
 
-.trade-col-price,
+.trade-col-price {
+  width: 6%;
+}
+
+.trade-col-risk,
 .trade-col-pnl {
-  width: 6.5%;
+  width: 7%;
 }
 
 .trade-col-small {
-  width: 5.5%;
+  width: 4.8%;
 }
 
 .trade-col-result {
-  width: 8%;
+  width: 7.5%;
 }
 
 .trade-col-custom {
@@ -1568,15 +1572,17 @@ input.live-price-panel {
 }
 
 .trade-col-action {
-  width: 2.25rem;
+  width: 2rem;
 }
 
 .trades-table th,
 .trades-table td {
   padding: 0.52rem 0.34rem;
-  white-space: normal;
-  overflow-wrap: anywhere;
-  word-break: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
 }
 
 .trades-table th {
@@ -1593,6 +1599,9 @@ input.live-price-panel {
   width: 100%;
   min-width: 0;
   max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .trades-table .notes-cell {
@@ -1603,8 +1612,11 @@ input.live-price-panel {
 
 .trades-table .notes-editor {
   width: 100%;
-  min-height: 2.25rem;
-  padding: 0.36rem 0.45rem;
+  min-height: 1.85rem;
+  padding: 0.32rem 0.45rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .side-toggle-cell,
@@ -1649,6 +1661,16 @@ input.live-price-panel {
 
 .result-toggle-cell.breakeven {
   color: #a855f7;
+}
+
+.section-actions .primary-button.compact-button {
+  background: var(--ink);
+  color: var(--background);
+}
+
+:root.dark .section-actions .primary-button.compact-button {
+  background: var(--ink);
+  color: var(--background);
 }
 
 .trades-table td .select-shell {
@@ -1825,7 +1847,7 @@ input.live-price-panel {
 }
 
 .simple-price-row {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .result-field {

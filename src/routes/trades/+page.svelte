@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import AppSidebar from '$lib/AppSidebar.svelte';
   import CustomSelect from '$lib/CustomSelect.svelte';
-  import { addJournalColumn, deleteTradesById, normalizeColumnLabel, saveJournalData } from '$lib/journalActions.js';
+  import { deleteTradesById, saveJournalData } from '$lib/journalActions.js';
   import { date, getTradePnl, loadJournalData, money, number, summarizeJournal } from '$lib/journalData.js';
 
   let data = { settings: {}, trades: [], customColumns: [] };
@@ -12,11 +12,9 @@
   let notesFilter = '';
   let fromDate = '';
   let toDate = '';
-  let newColumn = '';
   let notice = '';
   let confirmOpen = false;
   let deleteTarget = null;
-  let columnModalOpen = false;
   const sideOptions = [
     { value: 'long', label: 'Long' },
     { value: 'short', label: 'Short' }
@@ -62,19 +60,6 @@
     return pairMatches && sideMatches && notesMatches && fromMatches && toMatches;
   }
 
-  function addColumn() {
-    const result = addJournalColumn(newColumn);
-    notice = result.message;
-    if (result.ok) {
-      newColumn = '';
-      columnModalOpen = false;
-      refresh();
-    }
-    setTimeout(() => {
-      notice = '';
-    }, 2200);
-  }
-
   function askDelete(trade) {
     deleteTarget = trade;
     confirmOpen = true;
@@ -99,74 +84,6 @@
     }, 2200);
   }
 
-  function createId() {
-    if (crypto.randomUUID) return crypto.randomUUID();
-    return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-  }
-
-  function getRiskAmount(settings = {}) {
-    return (Number(settings.capital) || 0) * ((Number(settings.riskPercent) || 0) / 100);
-  }
-
-  function createEmptyTrade() {
-    return {
-      id: createId(),
-      date: '0',
-      symbol: '0',
-      direction: 'long',
-      measurementMode: 'points',
-      margin: 0,
-      entry: 0,
-      exitPrice: 0,
-      stopPrice: 0,
-      takeProfit: 0,
-      takeProfit1: 0,
-      takeProfit2: 0,
-      takeProfit3: 0,
-      slPoints: 0,
-      tpPoints: 0,
-      tp1Points: 0,
-      tp2Points: 0,
-      tp3Points: 0,
-      rawSl: 0,
-      rawTp: 0,
-      rawTp1: 0,
-      rawTp2: 0,
-      rawTp3: 0,
-      pointValue: 0,
-      riskAmount: 0,
-      lotSize: 0,
-      rr: 0,
-      estimatedGain: 0,
-      pnlPercent: 0,
-      caller: '',
-      signalBy: '',
-      result: 'open',
-      pnl: null,
-      notes: '',
-      customFields: Object.fromEntries((data.customColumns || []).map((column) => [column.key, '']))
-    };
-  }
-
-  function addRow() {
-    const next = structuredClone(data);
-    const trade = createEmptyTrade();
-    next.trades = [trade, ...(next.trades || [])];
-    saveJournalData(next);
-    data = next;
-    summary = summarizeJournal(next);
-    pairFilter = '';
-    sideFilter = 'all';
-    notesFilter = '';
-    fromDate = '';
-    toDate = '';
-    notice = 'Trade added.';
-    window.dispatchEvent(new CustomEvent('mindshift-notify', { detail: { message: 'Trade Added' } }));
-    setTimeout(() => {
-      notice = '';
-    }, 2200);
-  }
-
   function updateTradeCell(tradeId, field, value) {
     const next = structuredClone(data);
     const trade = next.trades.find((item) => item.id === tradeId);
@@ -181,8 +98,12 @@
       trade.symbol = value.trim().toUpperCase() || '0';
     } else if (field === 'direction') {
       trade.direction = value === 'short' ? 'short' : 'long';
-    } else if (field === 'entry' || field === 'exitPrice' || field === 'stopPrice' || field === 'margin' || field === 'lotSize' || field === 'pnlPercent') {
+    } else if (field === 'entry' || field === 'exitPrice' || field === 'stopPrice' || field === 'margin' || field === 'lotSize' || field === 'pnlPercent' || field === 'riskAmount') {
       trade[field] = parseNumber(value);
+      if (field === 'riskAmount') {
+        trade.margin = trade.riskAmount;
+        trade.manualRisk = true;
+      }
     } else if (field === 'caller') {
       trade.caller = value.trim();
       trade.signalBy = trade.caller;
@@ -230,8 +151,12 @@
       trade.symbol = value.trim().toUpperCase() || '0';
     } else if (field === 'direction') {
       trade.direction = value === 'short' ? 'short' : 'long';
-    } else if (field === 'entry' || field === 'exitPrice' || field === 'stopPrice' || field === 'margin' || field === 'lotSize' || field === 'pnlPercent') {
+    } else if (field === 'entry' || field === 'exitPrice' || field === 'stopPrice' || field === 'margin' || field === 'lotSize' || field === 'pnlPercent' || field === 'riskAmount') {
       trade[field] = parseNumber(value);
+      if (field === 'riskAmount') {
+        trade.margin = trade.riskAmount;
+        trade.manualRisk = true;
+      }
     } else if (field === 'caller') {
       trade.caller = value.trim();
       trade.signalBy = trade.caller;
@@ -261,7 +186,8 @@
 
   function recalculateTrade(trade, settings = {}) {
     const pointValue = Number(trade.pointValue) || Number(settings.pointValue) || 1;
-    const riskAmount = Number(trade.margin) || Number(trade.riskAmount) || (Number(settings.capital) || 0) * ((Number(settings.riskPercent) || 0) / 100);
+    const settingsRiskAmount = (Number(settings.capital) || 0) * ((Number(settings.riskPercent) || 0) / 100);
+    const riskAmount = trade.manualRisk ? Number(trade.riskAmount) || 0 : settingsRiskAmount;
     const slPoints = Number(trade.stopPrice) > 0 && Number(trade.entry) > 0 ? Math.abs(Number(trade.entry) - Number(trade.stopPrice)) : Number(trade.slPoints) || 0;
     const exitPoints = Number(trade.exitPrice) > 0 && Number(trade.entry) > 0 ? Math.abs(Number(trade.exitPrice) - Number(trade.entry)) : 0;
 
@@ -269,7 +195,7 @@
     trade.margin = riskAmount;
     trade.riskAmount = riskAmount;
     trade.slPoints = slPoints;
-    trade.lotSize = Number(trade.lotSize) || (slPoints > 0 && pointValue > 0 ? riskAmount / (slPoints * pointValue) : 0);
+    trade.lotSize = slPoints > 0 && pointValue > 0 ? riskAmount / (slPoints * pointValue) : 0;
     trade.rr = slPoints > 0 && exitPoints > 0 ? exitPoints / slPoints : Number(trade.rr) || 0;
 
     if (trade.manualPnl) return;
@@ -367,7 +293,6 @@
       </p>
       <div class="section-actions">
         <a class="primary-button compact-button" href="/add-trade">Add Trade</a>
-        <button class="ghost-button" type="button" on:click={() => (columnModalOpen = true)}>Add Column</button>
       </div>
     </div>
     <div class="journal-table-wrap card trades-table">
@@ -379,6 +304,7 @@
           <col class="trade-col-price" />
           <col class="trade-col-price" />
           <col class="trade-col-price" />
+          <col class="trade-col-risk" />
           <col class="trade-col-small" />
           <col class="trade-col-small" />
           <col class="trade-col-small" />
@@ -398,6 +324,7 @@
             <th>Entry</th>
             <th>Exit</th>
             <th>SL</th>
+            <th>Risk</th>
             <th>PnL %</th>
             <th>Lots</th>
             <th>RR</th>
@@ -425,6 +352,7 @@
                 <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.entry || ''} on:input={(event) => saveCellDraft(event, trade.id, 'entry')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'entry')}>{number(trade.entry)}</span></td>
                 <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.exitPrice || ''} on:input={(event) => saveCellDraft(event, trade.id, 'exitPrice')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'exitPrice')}>{trade.exitPrice ? number(trade.exitPrice) : ''}</span></td>
                 <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.stopPrice || ''} on:input={(event) => saveCellDraft(event, trade.id, 'stopPrice')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'stopPrice')}>{number(trade.stopPrice)}</span></td>
+                <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.riskAmount || ''} on:input={(event) => saveCellDraft(event, trade.id, 'riskAmount')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'riskAmount')}>{money(trade.riskAmount)}</span></td>
                 <td><span class={`editable-cell ${pnlTone(trade.pnlPercent)}`} contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.pnlPercent || ''} on:input={(event) => saveCellDraft(event, trade.id, 'pnlPercent')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'pnlPercent')}>{Number(trade.pnlPercent || 0).toFixed(2)}%</span></td>
                 <td>{Number(trade.lotSize || 0).toFixed(2)}</td>
                 <td>{Number(trade.rr || 0).toFixed(2)}R</td>
@@ -453,7 +381,7 @@
               </tr>
             {/each}
           {:else}
-            <tr><td colspan={13 + visibleCustomColumns.length}>No trades match the current filters.</td></tr>
+            <tr><td colspan={14 + visibleCustomColumns.length}>No trades match the current filters.</td></tr>
           {/if}
         </tbody>
       </table>
@@ -473,28 +401,6 @@
       <div class="confirm-actions">
         <button class="ghost-button" type="button" on:click={closeConfirm}>Cancel</button>
         <button class="danger-button" type="button" on:click={confirmDelete}>Delete</button>
-      </div>
-    </div>
-  </div>
-{/if}
-
-{#if columnModalOpen}
-  <div class="confirm-overlay is-visible" role="presentation" on:click={(event) => event.target === event.currentTarget && (columnModalOpen = false)}>
-    <div class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="columnModalTitle" tabindex="-1">
-      <p class="micro">Custom Column</p>
-      <h2 id="columnModalTitle">Add Table Column</h2>
-      <label>
-        <span>Column Name</span>
-        <input bind:value={newColumn} list="columnSuggestions" type="text" maxlength="32" placeholder="Session, setup..." on:blur={() => (newColumn = normalizeColumnLabel(newColumn))} on:keydown={(event) => event.key === 'Enter' && addColumn()} />
-      </label>
-      <datalist id="columnSuggestions">
-        <option value="session"></option>
-        <option value="setup"></option>
-        <option value="emotion"></option>
-      </datalist>
-      <div class="confirm-actions">
-        <button class="ghost-button" type="button" on:click={() => (columnModalOpen = false)}>Cancel</button>
-        <button class="primary-button" type="button" on:click={addColumn}>Add Column</button>
       </div>
     </div>
   </div>

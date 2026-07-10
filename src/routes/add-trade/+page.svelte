@@ -14,7 +14,9 @@
     { value: 'short', label: 'Short' }
   ];
 
-  $: riskAmount = (Number(data.settings?.capital) || 0) * ((Number(data.settings?.riskPercent) || 0) / 100);
+  $: accountRiskAmount = (Number(data.settings?.capital) || 0) * ((Number(data.settings?.riskPercent) || 0) / 100);
+  $: manualRiskAmount = parseNumber(trade.riskAmount);
+  $: riskAmount = manualRiskAmount > 0 ? manualRiskAmount : accountRiskAmount;
   $: savedStopPrice = parseNumber(trade.stopPrice);
   $: slDistance = Math.abs(parseNumber(trade.entry) - savedStopPrice);
   $: exitDistance = Math.abs(parseNumber(trade.exitPrice) - parseNumber(trade.entry));
@@ -43,6 +45,7 @@
       stopPrice: 0,
       slPoints: 0,
       pointValue: '',
+      riskAmount: '',
       lotSize: '',
       result: 'open',
       notes: ''
@@ -88,6 +91,7 @@
       rawTp3: 0,
       pointValue: effectivePointValue,
       riskAmount,
+      manualRisk: manualRiskAmount > 0,
       lotSize,
       rr,
       estimatedGain: pnl || 0,
@@ -173,6 +177,10 @@
           <label class="field">
             <span>exit</span>
             <input bind:value={trade.exitPrice} type="number" min="0" step="0.00001" />
+          </label>
+          <label class="field">
+            <span>risk</span>
+            <input bind:value={trade.riskAmount} type="number" min="0" step="0.01" placeholder={`${accountRiskAmount.toFixed(2)}`} />
           </label>
         </div>
 

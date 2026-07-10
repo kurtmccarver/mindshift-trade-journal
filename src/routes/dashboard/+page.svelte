@@ -116,18 +116,60 @@
   function savePersonalTarget(field, value, options = {}) {
     const parsed = Number(String(value || '').replace(/[^0-9.-]/g, ''));
     if (!Number.isFinite(parsed)) return;
+    const nextSettings = {
+      ...(data.settings || {}),
+      [field]: parsed
+    };
     const next = {
       ...data,
-      settings: {
-        ...(data.settings || {}),
-        [field]: parsed
-      }
+      settings: nextSettings,
+      trades: recalculateTradesForSettings(data.trades || [], nextSettings)
     };
     saveJournalData(next, { notify: options.refresh !== false });
-    if (options.refresh !== false) {
-      data = next;
-      summary = summarizeJournal(next);
-    }
+    data = next;
+    summary = summarizeJournal(next);
+  }
+
+  function recalculateTradesForSettings(trades, settings = {}) {
+    const accountRiskAmount = (Number(settings.capital) || 0) * ((Number(settings.riskPercent) || 0) / 100);
+    const pointValue = Number(settings.pointValue) || 1;
+
+    return trades.map((trade) => {
+      const nextTrade = { ...trade };
+      const riskAmount = nextTrade.manualRisk ? Number(nextTrade.riskAmount) || 0 : accountRiskAmount;
+      const effectivePointValue = Number(nextTrade.pointValue) || pointValue;
+      const entry = Number(nextTrade.entry) || 0;
+      const exitPrice = Number(nextTrade.exitPrice) || 0;
+      const stopPrice = Number(nextTrade.stopPrice) || 0;
+      const slPoints = entry > 0 && stopPrice > 0 ? Math.abs(entry - stopPrice) : Number(nextTrade.slPoints) || 0;
+      const exitPoints = entry > 0 && exitPrice > 0 ? Math.abs(exitPrice - entry) : 0;
+
+      nextTrade.margin = riskAmount;
+      nextTrade.riskAmount = riskAmount;
+      nextTrade.pointValue = effectivePointValue;
+      nextTrade.slPoints = slPoints;
+      nextTrade.lotSize = slPoints > 0 && effectivePointValue > 0 ? riskAmount / (slPoints * effectivePointValue) : 0;
+      nextTrade.rr = slPoints > 0 && exitPoints > 0 ? exitPoints / slPoints : Number(nextTrade.rr) || 0;
+
+      if (nextTrade.manualPnl) {
+        nextTrade.pnlPercent = riskAmount > 0 ? (Number(nextTrade.pnl) / riskAmount) * 100 : 0;
+        return nextTrade;
+      }
+
+      if (entry > 0 && exitPrice > 0) {
+        nextTrade.pnl = (nextTrade.direction === 'short' ? entry - exitPrice : exitPrice - entry) * nextTrade.lotSize * effectivePointValue;
+        nextTrade.pnlPercent = riskAmount > 0 ? (nextTrade.pnl / riskAmount) * 100 : 0;
+        nextTrade.result = nextTrade.pnl > 0 ? 'win' : nextTrade.pnl < 0 ? 'loss' : 'breakeven';
+      } else if (nextTrade.result === 'loss') {
+        nextTrade.pnl = -riskAmount;
+        nextTrade.pnlPercent = -100;
+      } else if (nextTrade.result === 'breakeven') {
+        nextTrade.pnl = 0;
+        nextTrade.pnlPercent = 0;
+      }
+
+      return nextTrade;
+    });
   }
 
   function commitPersonalTarget(event, field) {

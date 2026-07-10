@@ -61,6 +61,8 @@ function normalizeTrade(trade = {}) {
     exitPrice,
     stopPrice,
     margin,
+    riskAmount: Number(trade.riskAmount) || margin,
+    manualRisk: Boolean(trade.manualRisk),
     caller: trade.caller || trade.signalBy || trade.customFields?.signal_by || '',
     pnl,
     pnlPercent,
