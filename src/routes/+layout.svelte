@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { afterNavigate } from '$app/navigation';
   import '../app.css';
+  import { captureJournalSummary, captureModeChanged, initAnalytics } from '$lib/analytics.js';
   import { applyAppSettings, loadAppSettings, saveAppSettings } from '$lib/appSettings.js';
   import { createScheduledBackupIfDue } from '$lib/backupActions.js';
 
@@ -68,6 +69,7 @@
 
     applyEverything();
     applyTheme();
+    initAnalytics();
     showOnboarding = localStorage.getItem(onboardingKey) !== 'true';
     instructionsOpenedManually = false;
     selectedMode = loadAppSettings().simpleMode ? 'simple' : 'prop';
@@ -107,6 +109,7 @@
       propFirmEnabled: selectedMode === 'prop'
     };
     saveAppSettings(nextSettings);
+    captureModeChanged();
     applyAppSettings(nextSettings);
     localStorage.setItem(onboardingKey, 'true');
     showOnboarding = false;
@@ -136,6 +139,7 @@
 
   function handlePersistedChange() {
     createScheduledBackupIfDue('Scheduled Snapshot');
+    captureJournalSummary('saved_data_changed');
   }
 
   function handleNotify(event) {

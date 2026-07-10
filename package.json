@@ -31,6 +31,7 @@
     "cookie": "0.7.2"
   },
   "dependencies": {
+    "posthog-js": "^1.399.2",
     "pretty-checkbox": "^3.0.3"
   }
 }
