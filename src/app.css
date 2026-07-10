@@ -1616,7 +1616,13 @@ input.live-price-panel {
 }
 
 .add-trade-form-card {
-  padding: 1.35rem;
+  padding: 1.45rem 2.25rem;
+}
+
+@media (max-width: 640px) {
+  .add-trade-form-card {
+    padding: 1.2rem;
+  }
 }
 
 .add-trade-form {
