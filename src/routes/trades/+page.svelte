@@ -349,12 +349,30 @@
         <span>03 - all trades</span>
       </p>
       <div class="section-actions">
-        <button class="primary-button compact-button" type="button" on:click={addRow}>Add Trade</button>
+        <a class="primary-button compact-button" href="/add-trade">Add Trade</a>
         <button class="ghost-button" type="button" on:click={() => (columnModalOpen = true)}>Add Column</button>
       </div>
     </div>
     <div class="journal-table-wrap card trades-table">
       <table>
+        <colgroup>
+          <col class="trade-col-date" />
+          <col class="trade-col-token" />
+          <col class="trade-col-side" />
+          <col class="trade-col-price" />
+          <col class="trade-col-price" />
+          <col class="trade-col-price" />
+          <col class="trade-col-small" />
+          <col class="trade-col-small" />
+          <col class="trade-col-small" />
+          <col class="trade-col-result" />
+          <col class="trade-col-pnl" />
+          {#each visibleCustomColumns as column}
+            <col class="trade-col-custom" />
+          {/each}
+          <col class="trade-col-notes" />
+          <col class="trade-col-action" />
+        </colgroup>
         <thead>
           <tr>
             <th>Date</th>

@@ -1,5 +1,5 @@
 <script>
-  import { createEventDispatcher, onDestroy, tick } from 'svelte';
+  import { createEventDispatcher, tick } from 'svelte';
 
   export let value = '';
   export let options = [];
@@ -18,7 +18,6 @@
     open = !open;
     if (open) {
       await tick();
-      portalMenu();
       positionMenu();
     }
   }
@@ -28,9 +27,11 @@
     const rect = shell.getBoundingClientRect();
     const gap = 6;
     const menuHeight = Math.min(240, options.length * 44 + 14);
+    const menuWidth = Math.max(rect.width, 128);
     const opensUp = rect.bottom + gap + menuHeight > window.innerHeight && rect.top > menuHeight;
     const top = opensUp ? rect.top - menuHeight - gap : rect.bottom + gap;
-    menuStyle = `position: fixed; left: ${rect.left}px; top: ${Math.max(8, top)}px; width: ${rect.width}px;`;
+    const left = Math.min(Math.max(8, rect.left), Math.max(8, window.innerWidth - menuWidth - 8));
+    menuStyle = `position: fixed; left: ${left}px; top: ${Math.max(8, top)}px; width: ${menuWidth}px;`;
   }
 
   function choose(nextValue) {
@@ -52,15 +53,6 @@
     if (open) positionMenu();
   }
 
-  function portalMenu() {
-    if (menu && menu.parentElement !== document.body) {
-      document.body.appendChild(menu);
-    }
-  }
-
-  onDestroy(() => {
-    menu?.remove();
-  });
 </script>
 
 <svelte:window on:click={handleDocumentClick} on:keydown={handleKeydown} on:scroll={handleViewportChange} on:resize={handleViewportChange} />

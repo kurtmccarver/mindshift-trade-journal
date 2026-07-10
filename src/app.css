@@ -1492,6 +1492,43 @@ input.live-price-panel {
   table-layout: fixed;
 }
 
+.trade-col-date {
+  width: 7%;
+}
+
+.trade-col-token {
+  width: 7%;
+}
+
+.trade-col-side {
+  width: 6%;
+}
+
+.trade-col-price,
+.trade-col-pnl {
+  width: 5.5%;
+}
+
+.trade-col-small {
+  width: 4.5%;
+}
+
+.trade-col-result {
+  width: 6%;
+}
+
+.trade-col-custom {
+  width: 6%;
+}
+
+.trade-col-notes {
+  width: 30%;
+}
+
+.trade-col-action {
+  width: 2.25rem;
+}
+
 .trades-table th,
 .trades-table td {
   padding: 0.62rem 0.34rem;
@@ -1517,14 +1554,15 @@ input.live-price-panel {
 }
 
 .trades-table .notes-cell {
-  width: 42%;
+  width: auto;
   min-width: 0;
   max-width: none;
 }
 
 .trades-table .notes-editor {
   width: 100%;
-  min-height: 2.2rem;
+  min-height: 3rem;
+  padding: 0.42rem 0.5rem;
 }
 
 .trades-table td .select-shell {
@@ -1542,6 +1580,12 @@ input.live-price-panel {
   font-size: 11px;
   font-weight: 800;
   gap: 0.35rem;
+}
+
+.trades-table td .select-trigger::after {
+  width: 0.32rem;
+  height: 0.32rem;
+  border-width: 1.25px;
 }
 
 .trades-table .row-action-cell {
