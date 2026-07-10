@@ -1664,13 +1664,15 @@ input.live-price-panel {
 }
 
 .section-actions .primary-button.compact-button {
-  background: var(--ink);
-  color: var(--background);
-}
-
-:root.dark .section-actions .primary-button.compact-button {
-  background: var(--ink);
-  color: var(--background);
+  display: inline-flex;
+  min-height: 2rem;
+  align-items: center;
+  justify-content: center;
+  border-color: var(--secondary);
+  background: var(--secondary);
+  color: #ffffff;
+  line-height: 1;
+  padding: 0.48rem 0.72rem;
 }
 
 .trades-table td .select-shell {
