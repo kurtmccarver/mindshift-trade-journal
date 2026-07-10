@@ -241,6 +241,34 @@
     updateTradeCell(tradeId, field, event.currentTarget.textContent || '');
   }
 
+  function prepareNumericEdit(event, value) {
+    event.currentTarget.textContent = String(Number(value) || 0);
+    selectEditableText(event.currentTarget);
+  }
+
+  function selectEditableText(element) {
+    const selection = window.getSelection();
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+
+  function handlePlainTextPaste(event) {
+    event.preventDefault();
+    const text = event.clipboardData?.getData('text/plain') || '';
+    insertPlainText(text);
+    event.currentTarget.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertFromPaste', data: text }));
+  }
+
+  function insertPlainText(text) {
+    const selection = window.getSelection();
+    if (!selection || !selection.rangeCount) return;
+    selection.deleteFromDocument();
+    selection.getRangeAt(0).insertNode(document.createTextNode(text));
+    selection.collapseToEnd();
+  }
+
   function handleCellKey(event) {
     if (event.key === 'Enter') {
       event.preventDefault();
@@ -354,19 +382,19 @@
           {#if filteredTrades.length}
             {#each filteredTrades as trade}
               <tr>
-                <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.date || ''} on:input={(event) => saveCellDraft(event, trade.id, 'date')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'date')}>{date(trade.date)}</span></td>
-                <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.symbol || ''} on:input={(event) => saveCellDraft(event, trade.id, 'symbol')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'symbol')}>{trade.symbol}</span></td>
+                <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.date || ''} on:paste={handlePlainTextPaste} on:input={(event) => saveCellDraft(event, trade.id, 'date')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'date')}>{date(trade.date)}</span></td>
+                <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.symbol || ''} on:paste={handlePlainTextPaste} on:input={(event) => saveCellDraft(event, trade.id, 'symbol')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'symbol')}>{trade.symbol}</span></td>
                 <td>
                   <button class={`side-toggle-cell ${trade.direction === 'short' ? 'short' : 'long'}`} type="button" aria-label={`Toggle ${trade.symbol || 'trade'} side`} title="Toggle Side" on:click={() => updateTradeCell(trade.id, 'direction', trade.direction === 'short' ? 'long' : 'short')}>
                     <span aria-hidden="true">{trade.direction === 'short' ? '↓' : '↑'}</span>
                     {trade.direction === 'short' ? 'Short' : 'Long'}
                   </button>
                 </td>
-                <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.entry || ''} on:input={(event) => saveCellDraft(event, trade.id, 'entry')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'entry')}>{number(trade.entry)}</span></td>
-                <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.exitPrice || ''} on:input={(event) => saveCellDraft(event, trade.id, 'exitPrice')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'exitPrice')}>{trade.exitPrice ? number(trade.exitPrice) : ''}</span></td>
-                <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.stopPrice || ''} on:input={(event) => saveCellDraft(event, trade.id, 'stopPrice')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'stopPrice')}>{number(trade.stopPrice)}</span></td>
-                <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.riskAmount || ''} on:input={(event) => saveCellDraft(event, trade.id, 'riskAmount')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'riskAmount')}>{money(trade.riskAmount)}</span></td>
-                <td><span class={`editable-cell ${pnlTone(calculatePnlPercent(trade))}`} contenteditable="true" role="textbox" tabindex="0" data-original-value={calculatePnlPercent(trade)} on:input={(event) => saveCellDraft(event, trade.id, 'pnlPercent')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'pnlPercent')}>{displayPnlPercent(trade)}</span></td>
+                <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.entry || ''} on:paste={handlePlainTextPaste} on:input={(event) => saveCellDraft(event, trade.id, 'entry')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'entry')}>{number(trade.entry)}</span></td>
+                <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.exitPrice || ''} on:paste={handlePlainTextPaste} on:input={(event) => saveCellDraft(event, trade.id, 'exitPrice')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'exitPrice')}>{trade.exitPrice ? number(trade.exitPrice) : ''}</span></td>
+                <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.stopPrice || ''} on:paste={handlePlainTextPaste} on:input={(event) => saveCellDraft(event, trade.id, 'stopPrice')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'stopPrice')}>{number(trade.stopPrice)}</span></td>
+                <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.riskAmount || ''} on:focus={(event) => prepareNumericEdit(event, trade.riskAmount)} on:paste={handlePlainTextPaste} on:input={(event) => saveCellDraft(event, trade.id, 'riskAmount')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'riskAmount')}>{money(trade.riskAmount)}</span></td>
+                <td><span class={`editable-cell ${pnlTone(calculatePnlPercent(trade))}`} contenteditable="true" role="textbox" tabindex="0" data-original-value={calculatePnlPercent(trade)} on:paste={handlePlainTextPaste} on:input={(event) => saveCellDraft(event, trade.id, 'pnlPercent')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'pnlPercent')}>{displayPnlPercent(trade)}</span></td>
                 <td>{Number(trade.rr || 0).toFixed(2)}R</td>
                 <td>
                   <button class={`result-toggle-cell ${trade.result || 'open'}`} type="button" aria-label={`Toggle ${trade.symbol || 'trade'} result`} title="Toggle Result" on:click={() => toggleResult(trade.id, trade.result || 'open')}>
@@ -374,11 +402,11 @@
                     {resultLabel(trade.result || 'open')}
                   </button>
                 </td>
-                <td><span class={`editable-cell ${pnlTone(getTradePnl(trade))}`} contenteditable="true" role="textbox" tabindex="0" data-original-value={getTradePnl(trade)} on:input={(event) => saveCellDraft(event, trade.id, 'pnl')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'pnl')}>{money(getTradePnl(trade))}</span></td>
+                <td><span class={`editable-cell ${pnlTone(getTradePnl(trade))}`} contenteditable="true" role="textbox" tabindex="0" data-original-value={getTradePnl(trade)} on:focus={(event) => prepareNumericEdit(event, getTradePnl(trade))} on:paste={handlePlainTextPaste} on:input={(event) => saveCellDraft(event, trade.id, 'pnl')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'pnl')}>{money(getTradePnl(trade))}</span></td>
                 {#each visibleCustomColumns as column}
-                  <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.customFields?.[column.key] || ''} on:input={(event) => saveCellDraft(event, trade.id, `custom:${column.key}`)} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, `custom:${column.key}`)}>{trade.customFields?.[column.key] || ''}</span></td>
+                  <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.customFields?.[column.key] || ''} on:paste={handlePlainTextPaste} on:input={(event) => saveCellDraft(event, trade.id, `custom:${column.key}`)} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, `custom:${column.key}`)}>{trade.customFields?.[column.key] || ''}</span></td>
                 {/each}
-                <td class="notes-cell" title={trade.notes || ''}><span class="editable-cell notes-editor" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.notes || ''} on:input={(event) => saveCellDraft(event, trade.id, 'notes')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'notes')}>{trade.notes || ''}</span></td>
+                <td class="notes-cell" title={trade.notes || ''}><span class="editable-cell notes-editor" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.notes || ''} on:paste={handlePlainTextPaste} on:input={(event) => saveCellDraft(event, trade.id, 'notes')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'notes')}>{trade.notes || ''}</span></td>
                 <td class="row-action-cell">
                   <button class="delete-trade icon-only" type="button" aria-label={`Delete ${trade.symbol || 'trade'}`} title="Delete" on:click={() => askDelete(trade)}>
                     <svg aria-hidden="true" viewBox="0 0 24 24">

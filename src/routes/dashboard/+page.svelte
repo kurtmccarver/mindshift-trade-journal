@@ -199,6 +199,16 @@
   function digitCount(value) {
     return Math.max(1, String(value ?? '').length);
   }
+
+  function handlePlainInputPaste(event) {
+    event.preventDefault();
+    const text = event.clipboardData?.getData('text/plain') || '';
+    const input = event.currentTarget;
+    const start = input.selectionStart ?? input.value.length;
+    const end = input.selectionEnd ?? input.value.length;
+    input.value = `${input.value.slice(0, start)}${text}${input.value.slice(end)}`;
+    input.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertFromPaste', data: text }));
+  }
 </script>
 
 <svelte:head>
@@ -255,13 +265,13 @@
         <span>capital</span>
         <label class="editable-stat-input">
           <em>{currencySymbol}</em>
-          <input type="number" min="0" step="1" value={Number(summary.capital) || 0} on:input={(event) => inputPersonalTarget(event, 'capital')} on:blur={(event) => commitPersonalTarget(event, 'capital')} />
+          <input type="text" inputmode="decimal" value={Number(summary.capital) || 0} on:paste={handlePlainInputPaste} on:input={(event) => inputPersonalTarget(event, 'capital')} on:blur={(event) => commitPersonalTarget(event, 'capital')} />
         </label>
       </div>
       <div>
         <span>risk %</span>
         <label class="editable-stat-input suffix">
-          <input style={`--digits: ${digitCount(Number(data.settings.riskPercent) || 0)}`} type="number" min="0" step="0.1" value={Number(data.settings.riskPercent) || 0} on:input={(event) => inputPersonalTarget(event, 'riskPercent')} on:blur={(event) => commitPersonalTarget(event, 'riskPercent')} />
+          <input style={`--digits: ${digitCount(Number(data.settings.riskPercent) || 0)}`} type="text" inputmode="decimal" value={Number(data.settings.riskPercent) || 0} on:paste={handlePlainInputPaste} on:input={(event) => inputPersonalTarget(event, 'riskPercent')} on:blur={(event) => commitPersonalTarget(event, 'riskPercent')} />
           <em>%</em>
         </label>
       </div>
@@ -270,7 +280,7 @@
         <span>target profit</span>
         <label class="editable-stat-input">
           <em>{currencySymbol}</em>
-          <input type="number" min="0" step="1" value={Number(personalTargetAmount) || 0} on:input={(event) => inputPersonalTarget(event, 'targetProfitMoney')} on:blur={(event) => commitPersonalTarget(event, 'targetProfitMoney')} />
+          <input type="text" inputmode="decimal" value={Number(personalTargetAmount) || 0} on:paste={handlePlainInputPaste} on:input={(event) => inputPersonalTarget(event, 'targetProfitMoney')} on:blur={(event) => commitPersonalTarget(event, 'targetProfitMoney')} />
         </label>
       </div>
     </div>
