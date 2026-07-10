@@ -1483,6 +1483,69 @@ input.live-price-panel {
   overflow-x: auto;
 }
 
+.trades-table {
+  overflow-x: hidden;
+}
+
+.trades-table table {
+  min-width: 0;
+  table-layout: fixed;
+}
+
+.trades-table th,
+.trades-table td {
+  padding: 0.62rem 0.34rem;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.trades-table th {
+  font-size: 10px;
+}
+
+.trades-table td {
+  font-size: 11px;
+  line-height: 1.35;
+  vertical-align: top;
+}
+
+.trades-table .editable-cell {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.trades-table .notes-cell {
+  width: 15%;
+  min-width: 0;
+  max-width: none;
+}
+
+.trades-table .notes-editor {
+  width: 100%;
+  min-height: 2.2rem;
+}
+
+.trades-table td .select-shell {
+  min-width: 0;
+}
+
+.trades-table td .select-trigger {
+  min-height: 2rem;
+  padding: 0.3rem 0.42rem;
+  font-size: 11px;
+}
+
+.trades-table .row-action-cell {
+  width: 4.5rem;
+}
+
+.trades-table .delete-trade {
+  padding: 0.26rem 0.44rem;
+  font-size: 10px;
+}
+
 .add-trade-table table {
   min-width: 1040px;
 }

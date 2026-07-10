@@ -7,7 +7,6 @@
 
   let data = { settings: {}, trades: [], customColumns: [] };
   let summary = summarizeJournal(data);
-  let selectedIds = [];
   let pairFilter = '';
   let sideFilter = 'all';
   let callerFilter = 'all';
@@ -17,6 +16,7 @@
   let newColumn = '';
   let notice = '';
   let confirmOpen = false;
+  let deleteTarget = null;
   let columnModalOpen = false;
   const sideOptions = [
     { value: 'long', label: 'Long' },
@@ -40,8 +40,6 @@
       .map((value) => ({ value, label: value }))
   ];
   $: filteredTrades = data.trades.filter((trade) => matchesFilters(trade, pairFilter, sideFilter, callerFilter, notesFilter, fromDate, toDate));
-  $: allFilteredSelected = filteredTrades.length > 0 && filteredTrades.every((trade) => selectedIds.includes(trade.id));
-  $: selectedFilteredIds = filteredTrades.map((trade) => trade.id).filter((id) => selectedIds.includes(id));
 
   onMount(() => {
     refresh();
@@ -57,7 +55,6 @@
   function refresh() {
     data = loadJournalData();
     summary = summarizeJournal(data);
-    selectedIds = selectedIds.filter((id) => data.trades.some((trade) => trade.id === id));
   }
 
   function matchesFilters(trade, pair, side, caller, notes, from, to) {
@@ -70,19 +67,6 @@
     const fromMatches = !from || tradeDate >= from;
     const toMatches = !to || tradeDate <= to;
     return pairMatches && sideMatches && callerMatches && notesMatches && fromMatches && toMatches;
-  }
-
-  function toggleTrade(id) {
-    selectedIds = selectedIds.includes(id) ? selectedIds.filter((item) => item !== id) : [...selectedIds, id];
-  }
-
-  function toggleAllFiltered() {
-    if (allFilteredSelected) {
-      const filteredIdSet = new Set(filteredTrades.map((trade) => trade.id));
-      selectedIds = selectedIds.filter((id) => !filteredIdSet.has(id));
-      return;
-    }
-    selectedIds = [...new Set([...selectedIds, ...filteredTrades.map((trade) => trade.id)])];
   }
 
   function addColumn() {
@@ -98,12 +82,14 @@
     }, 2200);
   }
 
-  function askDelete() {
+  function askDelete(trade) {
+    deleteTarget = trade;
     confirmOpen = true;
   }
 
   function closeConfirm() {
     confirmOpen = false;
+    deleteTarget = null;
   }
 
   function handleConfirmOverlay(event) {
@@ -111,11 +97,13 @@
   }
 
   function confirmDelete() {
-    const ids = selectedFilteredIds;
-    if (ids.length) deleteTradesById(ids);
-    selectedIds = [];
+    if (deleteTarget?.id) deleteTradesById([deleteTarget.id]);
     closeConfirm();
     refresh();
+    notice = 'Trade deleted.';
+    setTimeout(() => {
+      notice = '';
+    }, 2200);
   }
 
   function createId() {
@@ -329,7 +317,7 @@
     <p class="eyebrow">journal manager</p>
     <h1>trades.</h1>
     <p class="lede">
-      Filter, select, edit, delete, and extend the default trade table without leaving the journal system.
+      Filter, edit, delete, and extend the default trade table without leaving the journal system.
     </p>
   </section>
 
@@ -372,29 +360,16 @@
     <div class="section-heading">
       <p class="heading-with-chip">
         <span>03 - all trades</span>
-        {#if selectedFilteredIds.length}<span class="selected-count">{selectedFilteredIds.length} selected</span>{/if}
       </p>
       <div class="section-actions">
         <button class="primary-button compact-button" type="button" on:click={addRow}>Add Trade</button>
         <button class="ghost-button" type="button" on:click={() => (columnModalOpen = true)}>Add Column</button>
-        <button class="ghost-button" type="button" on:click={toggleAllFiltered} disabled={!filteredTrades.length}>
-          {allFilteredSelected ? 'Clear Selected' : 'Select All'}
-        </button>
-        {#if selectedFilteredIds.length}
-          <button class="danger-button" type="button" on:click={askDelete}>Delete Checked</button>
-        {/if}
       </div>
     </div>
     <div class="journal-table-wrap card trades-table">
       <table>
         <thead>
           <tr>
-            <th>
-              <label class="mini-check" aria-label="Select all filtered trades">
-                <input type="checkbox" checked={allFilteredSelected} on:change={toggleAllFiltered} />
-                <span></span>
-              </label>
-            </th>
             <th>Date</th>
             <th>Token</th>
             <th>Margin</th>
@@ -408,22 +383,17 @@
             <th>Result</th>
             <th>PnL</th>
             <th>Caller</th>
-            <th>Notes</th>
             {#each data.customColumns as column}
               <th>{column.label}</th>
             {/each}
+            <th>Notes</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
           {#if filteredTrades.length}
             {#each filteredTrades as trade}
-              <tr class:selected-row={selectedIds.includes(trade.id)}>
-                <td>
-                  <label class="mini-check" aria-label={`Select ${trade.symbol} trade`}>
-                    <input type="checkbox" checked={selectedIds.includes(trade.id)} on:change={() => toggleTrade(trade.id)} />
-                    <span></span>
-                  </label>
-                </td>
+              <tr>
                 <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.date || ''} on:input={(event) => saveCellDraft(event, trade.id, 'date')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'date')}>{date(trade.date)}</span></td>
                 <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.symbol || ''} on:input={(event) => saveCellDraft(event, trade.id, 'symbol')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'symbol')}>{trade.symbol}</span></td>
                 <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.margin || ''} on:input={(event) => saveCellDraft(event, trade.id, 'margin')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'margin')}>{number(trade.margin)}</span></td>
@@ -441,14 +411,15 @@
                 </td>
                 <td><span class={`editable-cell ${pnlTone(getTradePnl(trade))}`} contenteditable="true" role="textbox" tabindex="0" data-original-value={getTradePnl(trade)} on:input={(event) => saveCellDraft(event, trade.id, 'pnl')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'pnl')}>{money(getTradePnl(trade))}</span></td>
                 <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.caller || trade.signalBy || ''} on:input={(event) => saveCellDraft(event, trade.id, 'caller')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'caller')}>{trade.caller || trade.signalBy || ''}</span></td>
-                <td class="notes-cell" title={trade.notes || ''}><span class="editable-cell notes-editor" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.notes || ''} on:input={(event) => saveCellDraft(event, trade.id, 'notes')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'notes')}>{trade.notes || ''}</span></td>
                 {#each data.customColumns as column}
                   <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.customFields?.[column.key] || ''} on:input={(event) => saveCellDraft(event, trade.id, `custom:${column.key}`)} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, `custom:${column.key}`)}>{trade.customFields?.[column.key] || ''}</span></td>
                 {/each}
+                <td class="notes-cell" title={trade.notes || ''}><span class="editable-cell notes-editor" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.notes || ''} on:input={(event) => saveCellDraft(event, trade.id, 'notes')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'notes')}>{trade.notes || ''}</span></td>
+                <td class="row-action-cell"><button class="delete-trade" type="button" on:click={() => askDelete(trade)}>Delete</button></td>
               </tr>
             {/each}
           {:else}
-            <tr><td colspan={14 + data.customColumns.length}>No trades match the current filters.</td></tr>
+            <tr><td colspan={15 + data.customColumns.length}>No trades match the current filters.</td></tr>
           {/if}
         </tbody>
       </table>
@@ -460,9 +431,9 @@
   <div class="confirm-overlay is-visible" role="presentation" on:click={handleConfirmOverlay}>
     <div class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="deleteConfirmTitle" tabindex="-1">
       <p class="micro">confirmation</p>
-      <h2 id="deleteConfirmTitle">Delete checked trades?</h2>
+      <h2 id="deleteConfirmTitle">Delete this trade?</h2>
       <p>
-        This removes {selectedFilteredIds.length} selected trade{selectedFilteredIds.length === 1 ? '' : 's'}.
+        This removes {deleteTarget?.symbol || 'this'} trade.
         This cannot be undone.
       </p>
       <div class="confirm-actions">
