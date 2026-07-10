@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import AppSidebar from '$lib/AppSidebar.svelte';
   import { saveJournalData } from '$lib/journalActions.js';
-  import { loadJournalData } from '$lib/journalData.js';
+  import { loadJournalData, money } from '$lib/journalData.js';
 
   let data = { settings: {}, trades: [], customColumns: [] };
   let status = '';
@@ -180,7 +180,7 @@
           </label>
           <label class="field">
             <span>risk</span>
-            <input bind:value={trade.riskAmount} type="number" min="0" step="0.01" placeholder={`${accountRiskAmount.toFixed(2)}`} />
+            <input bind:value={trade.riskAmount} type="text" inputmode="decimal" placeholder={money(accountRiskAmount)} />
           </label>
         </div>
 

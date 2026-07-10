@@ -1832,7 +1832,7 @@ input.live-price-panel {
 }
 
 .date-field {
-  max-width: 17rem;
+  width: 100%;
 }
 
 .form-row {
