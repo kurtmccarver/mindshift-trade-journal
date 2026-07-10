@@ -8,7 +8,7 @@ The app is built for traders who want a simple place to manage their trades with
 
 - Add trades from the dedicated Add Trade page or directly inside the journal table
 - Edit trades inline after saving them
-- Track entry, exit, stop loss, TP1, TP2, TP3, lots, RR, result, PnL, and notes
+- Track token, time/date, margin, side, entry, exit, stop loss, PnL %, PnL, caller, and notes
 - Use Simple Mode for personal trading
 - Use Prop Firm Mode when you want rules, targets, phases, and challenge tracking
 - View dashboard charts for PnL, results, traded pairs/tokens, and signals
@@ -31,13 +31,9 @@ The default mode is Simple Mode.
 
 Use this when you want to quickly journal a new trade. It is pinned at the top of the sidebar so it is always easy to reach.
 
-### Home
-
-Home gives you the main trading workspace. It includes the core calculator, journal table, current performance, and the rules section when Prop Firm Mode is enabled.
-
 ### Dashboard
 
-Dashboard summarizes your data with charts and performance cards. Use it to review total trades, win rate, RR gain, PnL, traded pairs/tokens, and recent trades.
+Dashboard is the main workspace. Use it to review total trades, win rate, RR gain, PnL, traded pairs/tokens, caller performance, recent trades, and prop-firm progress when enabled.
 
 ### Trades
 

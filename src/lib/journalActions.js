@@ -74,19 +74,12 @@ export function exportJournalCsv(data = loadJournalData()) {
     'date',
     'symbol',
     'direction',
-    'measurementMode',
+    'margin',
     'entry',
     'exitPrice',
     'stopPrice',
-    'takeProfit',
-    'takeProfit1',
-    'takeProfit2',
-    'takeProfit3',
-    'slPoints',
-    'tp1Points',
-    'tp2Points',
-    'tp3Points',
-    'signalBy',
+    'pnlPercent',
+    'caller',
     'pointValue',
     'riskAmount',
     'lotSize',
@@ -95,11 +88,7 @@ export function exportJournalCsv(data = loadJournalData()) {
     'result',
     'pnl',
     'notes',
-    'rawSl',
-    'rawTp',
-    'rawTp1',
-    'rawTp2',
-    'rawTp3'
+    'rawSl'
   ];
   const customHeader = data.customColumns.map((column) => `custom:${column.label}`);
   const header = [...baseHeader, ...customHeader];
@@ -156,49 +145,55 @@ export function importJournalCsv(text) {
       const item = Object.fromEntries(keys.map((key, index) => [key, record[index] ?? '']));
       const entry = Number(item.entry) || 0;
       const exitPrice = Number(item.exitPrice) || 0;
-      const slPoints = Number(item.slPoints) || 0;
-      const tp1Points = Number(item.tp1Points) || Number(item.tpPoints) || 0;
-      const tp2Points = Number(item.tp2Points) || 0;
-      const tp3Points = Number(item.tp3Points) || 0;
-      const targetPoints = tp1Points || tp2Points || tp3Points || 0;
+      const stopPrice = Number(item.stopPrice) || Number(item.rawSl) || 0;
+      const slPoints = Number(item.slPoints) || (entry > 0 && stopPrice > 0 ? Math.abs(entry - stopPrice) : 0);
       const pointValue = Number(item.pointValue) || Number(data.settings?.pointValue) || 1;
-      const riskAmount = Number(item.riskAmount) || Number(data.settings?.capital || 0) * (Number(data.settings?.riskPercent || 0) / 100);
+      const margin = Number(item.margin) || Number(item.riskAmount) || Number(data.settings?.capital || 0) * (Number(data.settings?.riskPercent || 0) / 100);
+      const riskAmount = Number(item.riskAmount) || margin;
       const lotSize = Number(item.lotSize) || (slPoints > 0 && pointValue > 0 ? riskAmount / (slPoints * pointValue) : 0);
       const direction = item.direction || 'long';
       const result = normalizeResult(item.result);
       const pnl = exitPrice > 0
         ? (direction === 'long' ? exitPrice - entry : entry - exitPrice) * lotSize * pointValue
         : Number(item.pnl) || null;
+      const pnlPercent = item.pnlPercent !== undefined && item.pnlPercent !== ''
+        ? Number(item.pnlPercent) || 0
+        : margin > 0 && pnl !== null
+          ? (pnl / margin) * 100
+          : 0;
 
       return {
         id: createId(),
         date: item.date || new Date().toISOString().slice(0, 10),
         symbol: (item.symbol || '0').toUpperCase(),
         direction,
-        measurementMode: item.measurementMode || 'points',
+        measurementMode: item.measurementMode || 'price',
+        margin,
         entry,
         exitPrice,
-        stopPrice: Number(item.stopPrice) || 0,
-        takeProfit: Number(item.takeProfit) || Number(item.takeProfit1) || Number(item.takeProfit2) || Number(item.takeProfit3) || 0,
-        takeProfit1: Number(item.takeProfit1) || Number(item.takeProfit) || 0,
-        takeProfit2: Number(item.takeProfit2) || 0,
-        takeProfit3: Number(item.takeProfit3) || 0,
+        stopPrice,
+        takeProfit: 0,
+        takeProfit1: 0,
+        takeProfit2: 0,
+        takeProfit3: 0,
         slPoints,
-        tpPoints: targetPoints,
-        tp1Points,
-        tp2Points,
-        tp3Points,
-        rawSl: Number(item.rawSl) || slPoints,
-        rawTp: Number(item.rawTp) || targetPoints,
-        rawTp1: Number(item.rawTp1) || tp1Points,
-        rawTp2: Number(item.rawTp2) || tp2Points,
-        rawTp3: Number(item.rawTp3) || tp3Points,
-        signalBy: item.signalBy || '',
+        tpPoints: 0,
+        tp1Points: 0,
+        tp2Points: 0,
+        tp3Points: 0,
+        rawSl: Number(item.rawSl) || stopPrice || slPoints,
+        rawTp: 0,
+        rawTp1: 0,
+        rawTp2: 0,
+        rawTp3: 0,
+        signalBy: item.signalBy || item.caller || '',
+        caller: item.caller || item.signalBy || '',
         pointValue,
         riskAmount,
         lotSize,
-        rr: Number(item.rr) || (slPoints > 0 && targetPoints > 0 ? targetPoints / slPoints : 0),
-        estimatedGain: Number(item.estimatedGain) || riskAmount * (slPoints > 0 && targetPoints > 0 ? targetPoints / slPoints : 0),
+        rr: Number(item.rr) || 0,
+        estimatedGain: Number(item.estimatedGain) || 0,
+        pnlPercent,
         pnl,
         result: result || (pnl > 0 ? 'win' : pnl < 0 ? 'loss' : 'open'),
         notes: item.notes || '',

@@ -6,11 +6,10 @@
 
   const links = [
     { href: '/add-trade', label: '00 - add trade', autoPinned: true },
-    { href: '/', label: '01 - home' },
-    { href: '/dashboard', label: '02 - dashboard' },
-    { href: '/trades', label: '03 - trades' },
-    { href: '/calculator', label: '04 - calculator' },
-    { href: '/#rules', label: '05 - rules', propFirmOnly: true }
+    { href: '/dashboard', label: '01 - dashboard' },
+    { href: '/trades', label: '02 - trades' },
+    { href: '/calculator', label: '03 - calculator' },
+    { href: '/dashboard#rules', label: '04 - rules', propFirmOnly: true }
   ];
 
   const settingsLink = { href: '/settings', label: 'Settings' };
@@ -56,7 +55,7 @@
 
   function linkVisible(link) {
     if (link.propFirmOnly && !appSettings.propFirmEnabled) return false;
-    if (appSettings.simpleMode && (link.href === '/#rules' || link.href === '/calculator')) return false;
+    if (appSettings.simpleMode && (link.href === '/dashboard#rules' || link.href === '/calculator')) return false;
     return true;
   }
 
@@ -72,7 +71,7 @@
   }
 
   function isActive(href) {
-    return current === href || (href !== '/' && current.startsWith(href));
+    return current === href || (href !== '/' && !href.includes('#') && current.startsWith(href));
   }
 
   function openInstructions() {
@@ -135,7 +134,7 @@
 </script>
 
 <aside class="sidebar" aria-label="Primary navigation">
-  <a class="brand" href="/" aria-label="MindShift Trade Journal home">
+  <a class="brand" href="/dashboard" aria-label="MindShift Trade Journal dashboard">
     <span class="logo-mark">
       <img class="logo-light" src="/images/mindshift-logo-black.png" alt="MindShift" />
       <img class="logo-dark" src="/images/mindshift-logo-white.png" alt="MindShift" />
@@ -182,7 +181,7 @@
 </aside>
 
 <header class="topbar">
-  <a class="brand" href="/">
+  <a class="brand" href="/dashboard">
     <span class="logo-mark">
       <img class="logo-light" src="/images/mindshift-logo-black.png" alt="MindShift" />
       <img class="logo-dark" src="/images/mindshift-logo-white.png" alt="MindShift" />

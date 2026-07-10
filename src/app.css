@@ -488,20 +488,20 @@ th,
 .page-shell {
   width: min(100%, 74rem);
   margin: 0 auto;
-  padding: 1.5rem 0.75rem 8rem;
+  padding: 0.85rem 0.75rem 8rem;
 }
 
 .hero {
   position: relative;
-  min-height: 13.5rem;
+  min-height: 7.5rem;
   display: grid;
   align-content: center;
   overflow: hidden;
-  padding-block: 1rem;
+  padding-block: 0.45rem;
 }
 
 .compact-hero {
-  min-height: 10rem;
+  min-height: 6rem;
 }
 
 .halftone {
@@ -525,9 +525,9 @@ th,
 
 h1 {
   max-width: 10ch;
-  margin: 0.35rem 0 0.7rem;
+  margin: 0.2rem 0 0.35rem;
   font-family: "Geist Mono", ui-monospace, monospace;
-  font-size: clamp(2.45rem, 8vw, 4.65rem);
+  font-size: clamp(1.85rem, 5.2vw, 3.05rem);
   line-height: 0.96;
   letter-spacing: 0;
   text-transform: lowercase;
@@ -537,8 +537,8 @@ h1 {
   max-width: 38rem;
   margin: 0;
   color: var(--gray-500);
-  font-size: 1.12rem;
-  line-height: 1.7;
+  font-size: 0.98rem;
+  line-height: 1.55;
 }
 
 section + section {
@@ -1568,6 +1568,10 @@ input.live-price-panel {
   grid-template-columns: repeat(6, minmax(0, 1fr));
 }
 
+.simple-price-row {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .result-field {
   max-width: 17rem;
 }
@@ -1583,7 +1587,7 @@ input.live-price-panel {
 }
 
 .add-trade-stats {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .add-trade-stats div {
@@ -1605,6 +1609,17 @@ input.live-price-panel {
   font-family: "Geist Mono", ui-monospace, monospace;
   font-size: clamp(1.55rem, 4vw, 2.25rem);
   font-weight: 800;
+}
+
+.add-trade-form .primary-button {
+  border-color: var(--secondary);
+  background: var(--secondary);
+  color: #ffffff;
+}
+
+.add-trade-form .primary-button:hover {
+  border-color: color-mix(in srgb, var(--secondary) 76%, #000000);
+  background: color-mix(in srgb, var(--secondary) 82%, #000000);
 }
 
 .add-trade-actions {

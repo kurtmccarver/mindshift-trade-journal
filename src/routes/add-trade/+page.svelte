@@ -21,23 +21,19 @@
     { value: 'breakeven', label: 'Breakeven' }
   ];
 
-  $: riskAmount = (Number(data.settings?.capital) || 0) * ((Number(data.settings?.riskPercent) || 0) / 100);
+  $: defaultRiskAmount = (Number(data.settings?.capital) || 0) * ((Number(data.settings?.riskPercent) || 0) / 100);
+  $: margin = parseNumber(trade.margin) || defaultRiskAmount;
   $: savedStopPrice = parseNumber(trade.stopPrice);
-  $: savedTakeProfit1 = parseNumber(trade.takeProfit1);
-  $: savedTakeProfit2 = parseNumber(trade.takeProfit2);
-  $: savedTakeProfit3 = parseNumber(trade.takeProfit3);
   $: slDistance = Math.abs(parseNumber(trade.entry) - savedStopPrice);
-  $: tp1Distance = Math.abs(savedTakeProfit1 - parseNumber(trade.entry));
-  $: tp2Distance = Math.abs(savedTakeProfit2 - parseNumber(trade.entry));
-  $: tp3Distance = Math.abs(savedTakeProfit3 - parseNumber(trade.entry));
-  $: targetDistance = tp1Distance || tp2Distance || tp3Distance || 0;
+  $: exitDistance = Math.abs(parseNumber(trade.exitPrice) - parseNumber(trade.entry));
   $: effectivePointValue = parseNumber(trade.pointValue) || Number(data.settings?.pointValue) || 1;
-  $: lotSize = slDistance > 0 && effectivePointValue > 0 ? riskAmount / (slDistance * effectivePointValue) : 0;
-  $: rr = slDistance > 0 && targetDistance > 0 ? targetDistance / slDistance : 0;
-  $: estimatedGain = riskAmount * rr;
+  $: lotSize = parseNumber(trade.lotSize) || (slDistance > 0 && effectivePointValue > 0 ? margin / (slDistance * effectivePointValue) : 0);
+  $: rr = slDistance > 0 && exitDistance > 0 ? exitDistance / slDistance : 0;
   $: autoPnl = Number(trade.exitPrice) > 0 && Number(trade.entry) > 0
     ? (trade.direction === 'short' ? Number(trade.entry) - Number(trade.exitPrice) : Number(trade.exitPrice) - Number(trade.entry)) * lotSize * effectivePointValue
     : 0;
+  $: resolvedPnl = trade.pnl !== '' ? parseNumber(trade.pnl) : autoPnl;
+  $: pnlPercent = margin > 0 ? (resolvedPnl / margin) * 100 : 0;
 
   onMount(() => {
     data = loadJournalData();
@@ -51,17 +47,14 @@
       symbol: '',
       direction: 'long',
       measurementMode: 'price',
+      margin: '',
       entry: 0,
       exitPrice: 0,
       stopPrice: 0,
-      takeProfit1: 0,
-      takeProfit2: 0,
-      takeProfit3: 0,
       slPoints: 0,
-      tp1Points: 0,
-      tp2Points: 0,
-      tp3Points: 0,
       pointValue: '',
+      lotSize: '',
+      caller: '',
       result: 'open',
       pnl: '',
       notes: ''
@@ -80,17 +73,7 @@
 
   function addTrade() {
     const manualPnl = trade.pnl !== '';
-    const pnl = manualPnl
-      ? parseNumber(trade.pnl)
-      : Number(trade.exitPrice) > 0
-        ? autoPnl
-        : trade.result === 'win'
-          ? estimatedGain
-          : trade.result === 'loss'
-            ? -riskAmount
-            : trade.result === 'breakeven'
-              ? 0
-              : null;
+    const pnl = manualPnl ? parseNumber(trade.pnl) : Number(trade.exitPrice) > 0 ? autoPnl : null;
 
     const nextTrade = {
       id: createId(),
@@ -98,31 +81,35 @@
       symbol: String(trade.symbol || '0').trim().toUpperCase() || '0',
       direction: trade.direction,
       measurementMode: 'price',
+      margin,
       entry: parseNumber(trade.entry),
       exitPrice: parseNumber(trade.exitPrice),
       stopPrice: savedStopPrice,
-      takeProfit: savedTakeProfit1 || savedTakeProfit2 || savedTakeProfit3,
-      takeProfit1: savedTakeProfit1,
-      takeProfit2: savedTakeProfit2,
-      takeProfit3: savedTakeProfit3,
+      takeProfit: 0,
+      takeProfit1: 0,
+      takeProfit2: 0,
+      takeProfit3: 0,
       slPoints: slDistance,
-      tpPoints: targetDistance,
-      tp1Points: tp1Distance,
-      tp2Points: tp2Distance,
-      tp3Points: tp3Distance,
+      tpPoints: 0,
+      tp1Points: 0,
+      tp2Points: 0,
+      tp3Points: 0,
       rawSl: savedStopPrice,
-      rawTp: savedTakeProfit1 || savedTakeProfit2 || savedTakeProfit3,
-      rawTp1: savedTakeProfit1,
-      rawTp2: savedTakeProfit2,
-      rawTp3: savedTakeProfit3,
+      rawTp: 0,
+      rawTp1: 0,
+      rawTp2: 0,
+      rawTp3: 0,
       pointValue: effectivePointValue,
-      riskAmount,
+      riskAmount: margin,
       lotSize,
       rr,
-      estimatedGain,
+      estimatedGain: pnl || 0,
       result: pnl > 0 ? 'win' : pnl < 0 ? 'loss' : trade.result,
       pnl,
+      pnlPercent,
       manualPnl,
+      caller: trade.caller.trim(),
+      signalBy: trade.caller.trim(),
       notes: trade.notes.trim(),
       customFields: { ...customFields }
     };
@@ -179,7 +166,7 @@
           </label>
         </div>
 
-        <div class="form-row price-row">
+        <div class="form-row price-row simple-price-row">
           <label class="field">
             <span>entry</span>
             <input bind:value={trade.entry} type="number" min="0" step="0.00001" />
@@ -187,18 +174,6 @@
           <label class="field">
             <span>sl</span>
             <input bind:value={trade.stopPrice} type="number" min="0" step="0.00001" />
-          </label>
-          <label class="field">
-            <span>tp1</span>
-            <input bind:value={trade.takeProfit1} type="number" min="0" step="0.00001" />
-          </label>
-          <label class="field">
-            <span>tp2</span>
-            <input bind:value={trade.takeProfit2} type="number" min="0" step="0.00001" />
-          </label>
-          <label class="field">
-            <span>tp3</span>
-            <input bind:value={trade.takeProfit3} type="number" min="0" step="0.00001" />
           </label>
           <label class="field">
             <span>exit</span>
@@ -210,6 +185,21 @@
           <span>result</span>
           <CustomSelect bind:value={trade.result} options={resultOptions} ariaLabel="Trade result" />
         </label>
+
+        <div class="form-row custom-fields-row">
+          <label class="field">
+            <span>margin</span>
+            <input bind:value={trade.margin} type="number" min="0" step="0.01" placeholder={defaultRiskAmount ? String(defaultRiskAmount.toFixed(2)) : '0'} />
+          </label>
+          <label class="field">
+            <span>lot</span>
+            <input bind:value={trade.lotSize} type="number" min="0" step="0.01" placeholder="auto" />
+          </label>
+          <label class="field">
+            <span>caller</span>
+            <input bind:value={trade.caller} type="text" maxlength="80" placeholder="Signal, mentor, self..." />
+          </label>
+        </div>
 
         {#if data.customColumns?.length}
           <div class="form-row custom-fields-row">
@@ -228,12 +218,13 @@
         </label>
 
         <div class="stats-grid add-trade-stats">
-          <div><span>lot</span><strong>{lotSize.toFixed(2)}</strong></div>
+          <div><span>margin</span><strong>${margin.toFixed(2)}</strong></div>
           <div><span>rr</span><strong>{rr.toFixed(2)}R</strong></div>
           <div class="pnl-entry">
             <span>pnl</span>
             <input bind:value={trade.pnl} type="number" step="0.01" placeholder="0" />
           </div>
+          <div><span>pnl %</span><strong class:pnl-positive={pnlPercent > 0} class:pnl-negative={pnlPercent < 0}>{pnlPercent.toFixed(2)}%</strong></div>
         </div>
 
         <button class="primary-button wide" type="button" on:click={addTrade}>Add Trade</button>

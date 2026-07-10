@@ -10,6 +10,8 @@
   let selectedIds = [];
   let pairFilter = '';
   let sideFilter = 'all';
+  let callerFilter = 'all';
+  let notesFilter = '';
   let fromDate = '';
   let toDate = '';
   let newColumn = '';
@@ -31,7 +33,13 @@
     { value: 'breakeven', label: 'Breakeven' }
   ];
 
-  $: filteredTrades = data.trades.filter((trade) => matchesFilters(trade, pairFilter, sideFilter, fromDate, toDate));
+  $: callerOptions = [
+    { value: 'all', label: 'All' },
+    ...[...new Set(data.trades.map((trade) => String(trade.caller || trade.signalBy || '').trim()).filter(Boolean))]
+      .sort()
+      .map((value) => ({ value, label: value }))
+  ];
+  $: filteredTrades = data.trades.filter((trade) => matchesFilters(trade, pairFilter, sideFilter, callerFilter, notesFilter, fromDate, toDate));
   $: allFilteredSelected = filteredTrades.length > 0 && filteredTrades.every((trade) => selectedIds.includes(trade.id));
   $: selectedFilteredIds = filteredTrades.map((trade) => trade.id).filter((id) => selectedIds.includes(id));
 
@@ -52,25 +60,16 @@
     selectedIds = selectedIds.filter((id) => data.trades.some((trade) => trade.id === id));
   }
 
-  function matchesFilters(trade, pair, side, from, to) {
+  function matchesFilters(trade, pair, side, caller, notes, from, to) {
     const pairMatches = !pair || String(trade.symbol || '').toLowerCase().includes(pair.toLowerCase());
     const sideMatches = side === 'all' || trade.direction === side;
+    const tradeCaller = String(trade.caller || trade.signalBy || '').trim();
+    const callerMatches = caller === 'all' || tradeCaller === caller;
+    const notesMatches = !notes || String(trade.notes || '').toLowerCase().includes(notes.toLowerCase());
     const tradeDate = String(trade.date || '').slice(0, 10);
     const fromMatches = !from || tradeDate >= from;
     const toMatches = !to || tradeDate <= to;
-    return pairMatches && sideMatches && fromMatches && toMatches;
-  }
-
-  function slTp(trade) {
-    if (trade.measurementMode === 'price') {
-      return `${number(trade.stopPrice)} / ${optionalNumber(trade.takeProfit1 || trade.takeProfit)} / ${optionalNumber(trade.takeProfit2)} / ${optionalNumber(trade.takeProfit3)}`;
-    }
-
-    return `${number(trade.slPoints)} / ${optionalNumber(trade.tp1Points || trade.tpPoints)} / ${optionalNumber(trade.tp2Points)} / ${optionalNumber(trade.tp3Points)}`;
-  }
-
-  function optionalNumber(value) {
-    return Number(value) > 0 ? number(value) : '-';
+    return pairMatches && sideMatches && callerMatches && notesMatches && fromMatches && toMatches;
   }
 
   function toggleTrade(id) {
@@ -135,6 +134,7 @@
       symbol: '0',
       direction: 'long',
       measurementMode: 'points',
+      margin: 0,
       entry: 0,
       exitPrice: 0,
       stopPrice: 0,
@@ -157,6 +157,9 @@
       lotSize: 0,
       rr: 0,
       estimatedGain: 0,
+      pnlPercent: 0,
+      caller: '',
+      signalBy: '',
       result: 'open',
       pnl: null,
       notes: '',
@@ -173,6 +176,8 @@
     summary = summarizeJournal(next);
     pairFilter = '';
     sideFilter = 'all';
+    callerFilter = 'all';
+    notesFilter = '';
     fromDate = '';
     toDate = '';
     notice = 'Trade added.';
@@ -196,31 +201,18 @@
       trade.symbol = value.trim().toUpperCase() || '0';
     } else if (field === 'direction') {
       trade.direction = value === 'short' ? 'short' : 'long';
-    } else if (field === 'entry' || field === 'exitPrice') {
+    } else if (field === 'entry' || field === 'exitPrice' || field === 'stopPrice' || field === 'margin' || field === 'lotSize' || field === 'pnlPercent') {
       trade[field] = parseNumber(value);
-    } else if (field === 'slTp') {
-      const [sl = 0, tp1 = 0, tp2 = 0, tp3 = 0] = value.split('/').map(parseNumber);
-      trade.slPoints = sl;
-      trade.tp1Points = tp1;
-      trade.tp2Points = tp2;
-      trade.tp3Points = tp3;
-      trade.tpPoints = tp1 || tp2 || tp3 || 0;
-      trade.rawSl = sl;
-      trade.rawTp1 = tp1;
-      trade.rawTp2 = tp2;
-      trade.rawTp3 = tp3;
-      trade.rawTp = trade.tpPoints;
-      if (trade.measurementMode === 'price') {
-        trade.stopPrice = sl;
-        trade.takeProfit1 = tp1;
-        trade.takeProfit2 = tp2;
-        trade.takeProfit3 = tp3;
-      }
-    } else if (field === 'signalBy' || field === 'notes') {
+    } else if (field === 'caller') {
+      trade.caller = value.trim();
+      trade.signalBy = trade.caller;
+    } else if (field === 'notes') {
       trade[field] = value.trim();
     } else if (field === 'pnl') {
       trade.pnl = parseNumber(value);
       trade.manualPnl = true;
+      const margin = Number(trade.margin) || Number(trade.riskAmount) || 0;
+      trade.pnlPercent = margin > 0 ? (trade.pnl / margin) * 100 : Number(trade.pnlPercent) || 0;
     } else if (field === 'result') {
       trade.result = ['open', 'win', 'loss', 'breakeven'].includes(value) ? value : 'open';
     }
@@ -242,31 +234,18 @@
       trade.symbol = value.trim().toUpperCase() || '0';
     } else if (field === 'direction') {
       trade.direction = value === 'short' ? 'short' : 'long';
-    } else if (field === 'entry' || field === 'exitPrice') {
+    } else if (field === 'entry' || field === 'exitPrice' || field === 'stopPrice' || field === 'margin' || field === 'lotSize' || field === 'pnlPercent') {
       trade[field] = parseNumber(value);
-    } else if (field === 'slTp') {
-      const [sl = 0, tp1 = 0, tp2 = 0, tp3 = 0] = value.split('/').map(parseNumber);
-      trade.slPoints = sl;
-      trade.tp1Points = tp1;
-      trade.tp2Points = tp2;
-      trade.tp3Points = tp3;
-      trade.tpPoints = tp1 || tp2 || tp3 || 0;
-      trade.rawSl = sl;
-      trade.rawTp1 = tp1;
-      trade.rawTp2 = tp2;
-      trade.rawTp3 = tp3;
-      trade.rawTp = trade.tpPoints;
-      if (trade.measurementMode === 'price') {
-        trade.stopPrice = sl;
-        trade.takeProfit1 = tp1;
-        trade.takeProfit2 = tp2;
-        trade.takeProfit3 = tp3;
-      }
-    } else if (field === 'signalBy' || field === 'notes') {
+    } else if (field === 'caller') {
+      trade.caller = value.trim();
+      trade.signalBy = trade.caller;
+    } else if (field === 'notes') {
       trade[field] = value.trim();
     } else if (field === 'pnl') {
       trade.pnl = parseNumber(value);
       trade.manualPnl = true;
+      const margin = Number(trade.margin) || Number(trade.riskAmount) || 0;
+      trade.pnlPercent = margin > 0 ? (trade.pnl / margin) * 100 : Number(trade.pnlPercent) || 0;
     } else if (field === 'result') {
       trade.result = ['open', 'win', 'loss', 'breakeven'].includes(value) ? value : 'open';
     }
@@ -286,19 +265,21 @@
 
   function recalculateTrade(trade, settings = {}) {
     const pointValue = Number(trade.pointValue) || Number(settings.pointValue) || 1;
-    const riskAmount = Number(trade.riskAmount) || (Number(settings.capital) || 0) * ((Number(settings.riskPercent) || 0) / 100);
-    const slPoints = Number(trade.slPoints) || 0;
-    const targetPoints = Number(trade.tp1Points) || Number(trade.tp2Points) || Number(trade.tp3Points) || Number(trade.tpPoints) || 0;
+    const riskAmount = Number(trade.margin) || Number(trade.riskAmount) || (Number(settings.capital) || 0) * ((Number(settings.riskPercent) || 0) / 100);
+    const slPoints = Number(trade.stopPrice) > 0 && Number(trade.entry) > 0 ? Math.abs(Number(trade.entry) - Number(trade.stopPrice)) : Number(trade.slPoints) || 0;
+    const exitPoints = Number(trade.exitPrice) > 0 && Number(trade.entry) > 0 ? Math.abs(Number(trade.exitPrice) - Number(trade.entry)) : 0;
 
     trade.pointValue = pointValue;
+    trade.margin = riskAmount;
     trade.riskAmount = riskAmount;
-    trade.lotSize = slPoints > 0 && pointValue > 0 ? riskAmount / (slPoints * pointValue) : 0;
-    trade.rr = slPoints > 0 && targetPoints > 0 ? targetPoints / slPoints : 0;
-    trade.estimatedGain = riskAmount * trade.rr;
+    trade.slPoints = slPoints;
+    trade.lotSize = Number(trade.lotSize) || (slPoints > 0 && pointValue > 0 ? riskAmount / (slPoints * pointValue) : 0);
+    trade.rr = slPoints > 0 && exitPoints > 0 ? exitPoints / slPoints : Number(trade.rr) || 0;
 
     if (trade.manualPnl) return;
     if (!trade.manualPnl && Number(trade.exitPrice) > 0 && Number(trade.entry) > 0) {
       trade.pnl = (trade.direction === 'short' ? trade.entry - trade.exitPrice : trade.exitPrice - trade.entry) * trade.lotSize * pointValue;
+      trade.pnlPercent = riskAmount > 0 ? (trade.pnl / riskAmount) * 100 : 0;
       trade.result = trade.pnl > 0 ? 'win' : trade.pnl < 0 ? 'loss' : 'breakeven';
     } else if (trade.result === 'win') {
       trade.pnl = trade.estimatedGain;
@@ -371,13 +352,18 @@
     </div>
     <div class="card management-panel">
       <div class="form-grid">
-        <label><span>filter by pair</span><input bind:value={pairFilter} type="search" placeholder="BTCUSDT, EURUSD, AAPL..." /></label>
+        <label><span>from</span><input bind:value={fromDate} type="date" /></label>
+        <label><span>to</span><input bind:value={toDate} type="date" /></label>
+        <label><span>token</span><input bind:value={pairFilter} type="search" placeholder="BTCUSDT, EURUSD..." /></label>
         <label>
-          <span>filter by side</span>
+          <span>caller</span>
+          <CustomSelect bind:value={callerFilter} options={callerOptions} ariaLabel="Filter by caller" />
+        </label>
+        <label>
+          <span>type</span>
           <CustomSelect bind:value={sideFilter} options={sideFilterOptions} ariaLabel="Filter by side" />
         </label>
-        <label><span>from date</span><input bind:value={fromDate} type="date" /></label>
-        <label><span>to date</span><input bind:value={toDate} type="date" /></label>
+        <label><span>notes</span><input bind:value={notesFilter} type="search" placeholder="Search..." /></label>
       </div>
     </div>
   </section>
@@ -410,15 +396,18 @@
               </label>
             </th>
             <th>Date</th>
-            <th>Pair</th>
+            <th>Token</th>
+            <th>Margin</th>
             <th>Side</th>
             <th>Entry</th>
             <th>Exit</th>
-            <th>SL / TP1 / TP2 / TP3</th>
+            <th>SL</th>
+            <th>PnL %</th>
             <th>Lots</th>
             <th>RR</th>
             <th>Result</th>
             <th>PnL</th>
+            <th>Caller</th>
             <th>Notes</th>
             {#each data.customColumns as column}
               <th>{column.label}</th>
@@ -437,18 +426,21 @@
                 </td>
                 <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.date || ''} on:input={(event) => saveCellDraft(event, trade.id, 'date')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'date')}>{date(trade.date)}</span></td>
                 <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.symbol || ''} on:input={(event) => saveCellDraft(event, trade.id, 'symbol')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'symbol')}>{trade.symbol}</span></td>
+                <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.margin || ''} on:input={(event) => saveCellDraft(event, trade.id, 'margin')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'margin')}>{number(trade.margin)}</span></td>
                 <td>
                   <CustomSelect value={trade.direction || 'long'} options={sideOptions} tone={trade.direction || 'long'} ariaLabel="Trade side" on:change={(event) => updateTradeCell(trade.id, 'direction', event.detail)} />
                 </td>
                 <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.entry || ''} on:input={(event) => saveCellDraft(event, trade.id, 'entry')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'entry')}>{number(trade.entry)}</span></td>
                 <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.exitPrice || ''} on:input={(event) => saveCellDraft(event, trade.id, 'exitPrice')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'exitPrice')}>{trade.exitPrice ? number(trade.exitPrice) : ''}</span></td>
-                <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={slTp(trade)} on:input={(event) => saveCellDraft(event, trade.id, 'slTp')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'slTp')}>{slTp(trade)}</span></td>
+                <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.stopPrice || ''} on:input={(event) => saveCellDraft(event, trade.id, 'stopPrice')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'stopPrice')}>{number(trade.stopPrice)}</span></td>
+                <td><span class={`editable-cell ${pnlTone(trade.pnlPercent)}`} contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.pnlPercent || ''} on:input={(event) => saveCellDraft(event, trade.id, 'pnlPercent')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'pnlPercent')}>{Number(trade.pnlPercent || 0).toFixed(2)}%</span></td>
                 <td>{Number(trade.lotSize || 0).toFixed(2)}</td>
                 <td>{Number(trade.rr || 0).toFixed(2)}R</td>
                 <td>
                   <CustomSelect value={trade.result || 'open'} options={resultOptions} ariaLabel="Trade result" on:change={(event) => updateTradeCell(trade.id, 'result', event.detail)} />
                 </td>
                 <td><span class={`editable-cell ${pnlTone(getTradePnl(trade))}`} contenteditable="true" role="textbox" tabindex="0" data-original-value={getTradePnl(trade)} on:input={(event) => saveCellDraft(event, trade.id, 'pnl')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'pnl')}>{money(getTradePnl(trade))}</span></td>
+                <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.caller || trade.signalBy || ''} on:input={(event) => saveCellDraft(event, trade.id, 'caller')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'caller')}>{trade.caller || trade.signalBy || ''}</span></td>
                 <td class="notes-cell" title={trade.notes || ''}><span class="editable-cell notes-editor" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.notes || ''} on:input={(event) => saveCellDraft(event, trade.id, 'notes')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'notes')}>{trade.notes || ''}</span></td>
                 {#each data.customColumns as column}
                   <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.customFields?.[column.key] || ''} on:input={(event) => saveCellDraft(event, trade.id, `custom:${column.key}`)} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, `custom:${column.key}`)}>{trade.customFields?.[column.key] || ''}</span></td>
@@ -456,7 +448,7 @@
               </tr>
             {/each}
           {:else}
-            <tr><td colspan={12 + data.customColumns.length}>No trades match the current filters.</td></tr>
+            <tr><td colspan={14 + data.customColumns.length}>No trades match the current filters.</td></tr>
           {/if}
         </tbody>
       </table>
@@ -491,7 +483,7 @@
         <input bind:value={newColumn} list="columnSuggestions" type="text" maxlength="32" placeholder="Session, setup..." on:blur={() => (newColumn = normalizeColumnLabel(newColumn))} on:keydown={(event) => event.key === 'Enter' && addColumn()} />
       </label>
       <datalist id="columnSuggestions">
-        <option value="signal by"></option>
+        <option value="caller"></option>
         <option value="session"></option>
         <option value="setup"></option>
         <option value="emotion"></option>

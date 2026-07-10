@@ -17,16 +17,14 @@
   $: onboardingPages = selectedMode === 'simple'
     ? [
         ['Add Trade', 'A pinned quick-entry page for journaling a trade directly into the saved table.'],
-        ['Home', 'Shows the core journal flow, calculator, live/manual price field, analytics, and recent trades without prop-firm rule blocks.'],
-        ['Dashboard', 'Shows performance PnL, win rate, RR gain, charts, pair/token distribution, optional signal-by chart, and recent trades.'],
-        ['Trades', 'Lists every trade in one editable table. Filter by pair, date, and side, edit cells inline, add custom columns, and delete selected trades.'],
+        ['Dashboard', 'Shows the main workspace, performance PnL, win rate, RR gain, charts, pair/token distribution, optional caller chart, and recent trades.'],
+        ['Trades', 'Lists every trade in one editable table. Filter by token, date, caller, notes, and type, edit cells inline, add custom columns, and delete selected trades.'],
         ['Backups', 'Creates local snapshots of your journal and settings so you can restore data if something changes unexpectedly.']
       ]
     : [
         ['Add Trade', 'A pinned quick-entry page for journaling a trade directly into the saved table.'],
-        ['Home', 'Shows prop-firm rules, phase targets, trade calculator, live/manual price field, analytics, and the journal table.'],
-        ['Dashboard', 'Shows challenge progress, target health, PnL, win rate, RR gain, charts, pair/token distribution, signal-by analysis, and recent trades.'],
-        ['Trades', 'Lists every trade in one editable table. Filter by pair, date, and side, edit cells inline, add custom columns, and delete selected trades.'],
+        ['Dashboard', 'Shows challenge progress, target health, PnL, win rate, RR gain, charts, pair/token distribution, caller analysis, and recent trades.'],
+        ['Trades', 'Lists every trade in one editable table. Filter by token, date, caller, notes, and type, edit cells inline, add custom columns, and delete selected trades.'],
         ['Calculator', 'A standalone volume calculator for quick position sizing using capital, risk, entry, stop, target, and value per lot.'],
         ['Rules', 'Shows account capital, risk percent, phase one, phase two, funded targets, max daily loss, completion checks, and payout readiness.'],
         ['Backups', 'Creates local snapshots of your journal and settings so you can restore data if something changes unexpectedly.']

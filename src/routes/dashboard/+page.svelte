@@ -27,12 +27,12 @@
     { label: 'open', value: summary.openTrades }
   ];
   $: maxDistribution = Math.max(1, ...resultDistribution.map((item) => item.value));
-  $: signalColumn = data.customColumns?.find((column) => /signal/i.test(column.label) || column.key === 'signal_by');
+  $: signalColumn = data.customColumns?.find((column) => /signal|caller/i.test(column.label) || column.key === 'signal_by' || column.key === 'caller');
   $: pairDistribution = buildCategoryDistribution(data.trades, (trade) => trade.symbol || '0');
   $: pairTotal = pairDistribution.reduce((sum, item) => sum + item.count, 0);
   $: pieSlices = buildPieSlices(pairDistribution, pairTotal);
   $: signalDistribution = signalColumn
-    ? buildCategoryDistribution(data.trades, (trade) => trade.customFields?.[signalColumn.key] || trade.signalBy || '')
+    ? buildCategoryDistribution(data.trades, (trade) => trade.customFields?.[signalColumn.key] || trade.caller || trade.signalBy || '')
     : [];
   $: signalTotal = signalDistribution.reduce((sum, item) => sum + item.count, 0);
   $: signalPieSlices = buildPieSlices(signalDistribution, signalTotal);
@@ -184,7 +184,7 @@
     </div>
   </section>
 
-  <section class="section-enter" class:hidden-panel={!appSettings.propFirmEnabled}>
+  <section id="rules" class="section-enter" class:hidden-panel={!appSettings.propFirmEnabled}>
     <div class="section-heading">
       <p>02 - challenge</p>
     </div>
@@ -293,12 +293,12 @@
       {#if signalColumn}
         <div class="card chart-card">
           <div class="chart-heading">
-            <span>signal by</span>
+          <span>caller</span>
             <strong>{signalDistribution.length}</strong>
           </div>
           {#if signalPieSlices.length}
             <div class="pie-chart-layout">
-              <svg class="pie-chart" viewBox="0 0 100 100" role="img" aria-label="Signal by performance">
+              <svg class="pie-chart" viewBox="0 0 100 100" role="img" aria-label="Caller performance">
                 {#each signalPieSlices as slice}
                   <path
                     d={slice.path}

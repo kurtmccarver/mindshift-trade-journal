@@ -42,8 +42,28 @@ export function getEmptyJournal() {
 }
 
 function normalizeTrade(trade = {}) {
+  const entry = Number(trade.entry) || 0;
+  const exitPrice = Number(trade.exitPrice) || 0;
+  const stopPrice = Number(trade.stopPrice) || Number(trade.rawSl) || 0;
+  const margin = Number(trade.margin) || Number(trade.riskAmount) || 0;
+  const pnl = trade.pnl !== null && trade.pnl !== undefined && trade.pnl !== '' ? Number(trade.pnl) || 0 : null;
+  const pnlPercent = trade.pnlPercent !== null && trade.pnlPercent !== undefined && trade.pnlPercent !== ''
+    ? Number(trade.pnlPercent) || 0
+    : margin > 0 && pnl !== null
+      ? (pnl / margin) * 100
+      : 0;
+
   return {
     ...trade,
+    symbol: String(trade.symbol || trade.token || '0').toUpperCase(),
+    direction: trade.direction === 'short' ? 'short' : 'long',
+    entry,
+    exitPrice,
+    stopPrice,
+    margin,
+    caller: trade.caller || trade.signalBy || trade.customFields?.signal_by || '',
+    pnl,
+    pnlPercent,
     takeProfit3: Number(trade.takeProfit3) || 0,
     tp3Points: Number(trade.tp3Points) || 0,
     rawTp3: Number(trade.rawTp3) || 0
