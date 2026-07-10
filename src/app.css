@@ -1517,7 +1517,7 @@ input.live-price-panel {
 }
 
 .trades-table .notes-cell {
-  width: 28%;
+  width: 42%;
   min-width: 0;
   max-width: none;
 }
@@ -1529,16 +1529,25 @@ input.live-price-panel {
 
 .trades-table td .select-shell {
   min-width: 0;
+  width: auto;
 }
 
 .trades-table td .select-trigger {
-  min-height: 2rem;
-  padding: 0.3rem 0.42rem;
+  width: auto;
+  min-height: 0;
+  border: 0;
+  background: transparent !important;
+  box-shadow: none;
+  padding: 0;
   font-size: 11px;
+  font-weight: 800;
+  gap: 0.35rem;
 }
 
 .trades-table .row-action-cell {
-  width: 2.75rem;
+  width: 2.25rem;
+  padding-left: 0;
+  text-align: right;
 }
 
 .trades-table .delete-trade {
@@ -1548,8 +1557,8 @@ input.live-price-panel {
 
 .delete-trade.icon-only {
   display: inline-grid;
-  width: 2rem;
-  height: 2rem;
+  width: 1.85rem;
+  height: 1.85rem;
   place-items: center;
 }
 

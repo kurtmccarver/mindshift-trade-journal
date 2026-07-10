@@ -40,7 +40,8 @@
   }
 
   function handleDocumentClick(event) {
-    if (shell && !shell.contains(event.target)) open = false;
+    if (shell?.contains(event.target) || menu?.contains(event.target)) return;
+    open = false;
   }
 
   function handleKeydown(event) {

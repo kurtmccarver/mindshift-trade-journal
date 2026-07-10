@@ -66,6 +66,7 @@ export function normalizeAppSettings(settings = {}) {
   const fonts = ['geist', 'system', 'mono'];
   const dateFormats = ['yyyy-mm-dd', 'mm/dd/yyyy', 'dd/mm/yyyy'];
   const currencies = ['USD', 'PHP', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'SGD'];
+  const propFirmEnabled = Boolean(nextSettings.propFirmEnabled);
 
   return {
     ...nextSettings,
@@ -75,8 +76,8 @@ export function normalizeAppSettings(settings = {}) {
     customBackground: normalizeHex(nextSettings.customBackground, defaultSettings.customBackground),
     customInk: normalizeHex(nextSettings.customInk, defaultSettings.customInk),
     customThemeEnabled: Boolean(nextSettings.customThemeEnabled),
-    propFirmEnabled: Boolean(nextSettings.propFirmEnabled),
-    simpleMode: Boolean(nextSettings.simpleMode)
+    propFirmEnabled,
+    simpleMode: !propFirmEnabled
   };
 }
 

@@ -34,6 +34,15 @@
     persist();
   }
 
+  function setMode(mode) {
+    settings = {
+      ...settings,
+      propFirmEnabled: mode === 'prop',
+      simpleMode: mode !== 'prop'
+    };
+    persist();
+  }
+
   function updateColor(key, value) {
     settings = {
       ...settings,
@@ -164,7 +173,7 @@
             <p class="settings-note price-source">Show or hide the challenge rules workspace.</p>
           </div>
           <div class="pretty p-svg p-curve p-thick app-checkbox settings-check">
-            <input id="propFirmEnabled" type="checkbox" bind:checked={settings.propFirmEnabled} on:change={persist} />
+            <input id="propFirmEnabled" type="checkbox" checked={settings.propFirmEnabled} on:change={() => setMode('prop')} />
             <div class="state p-primary">
               <svg class="svg svg-icon" viewBox="0 0 20 20"><path d="M7.6 14.2 3.8 10.4 5.2 9l2.4 2.4 7.2-7.2 1.4 1.4z" /></svg>
               <label for="propFirmEnabled">enabled</label>
@@ -177,7 +186,7 @@
             <p class="settings-note price-source">Only show analytics and journal on the home workspace. Data stays saved.</p>
           </div>
           <div class="pretty p-svg p-curve p-thick app-checkbox settings-check">
-            <input id="simpleMode" type="checkbox" bind:checked={settings.simpleMode} on:change={persist} />
+            <input id="simpleMode" type="checkbox" checked={settings.simpleMode} on:change={() => setMode('simple')} />
             <div class="state p-primary">
               <svg class="svg svg-icon" viewBox="0 0 20 20"><path d="M7.6 14.2 3.8 10.4 5.2 9l2.4 2.4 7.2-7.2 1.4 1.4z" /></svg>
               <label for="simpleMode">enabled</label>
