@@ -21,24 +21,24 @@
     { value: 'breakeven', label: 'Breakeven' }
   ];
 
-  $: defaultRiskAmount = (Number(data.settings?.capital) || 0) * ((Number(data.settings?.riskPercent) || 0) / 100);
-  $: margin = parseNumber(trade.margin) || defaultRiskAmount;
+  $: riskAmount = (Number(data.settings?.capital) || 0) * ((Number(data.settings?.riskPercent) || 0) / 100);
   $: savedStopPrice = parseNumber(trade.stopPrice);
   $: slDistance = Math.abs(parseNumber(trade.entry) - savedStopPrice);
   $: exitDistance = Math.abs(parseNumber(trade.exitPrice) - parseNumber(trade.entry));
   $: effectivePointValue = parseNumber(trade.pointValue) || Number(data.settings?.pointValue) || 1;
-  $: lotSize = parseNumber(trade.lotSize) || (slDistance > 0 && effectivePointValue > 0 ? margin / (slDistance * effectivePointValue) : 0);
+  $: lotSize = parseNumber(trade.lotSize) || (slDistance > 0 && effectivePointValue > 0 ? riskAmount / (slDistance * effectivePointValue) : 0);
   $: rr = slDistance > 0 && exitDistance > 0 ? exitDistance / slDistance : 0;
   $: autoPnl = Number(trade.exitPrice) > 0 && Number(trade.entry) > 0
     ? (trade.direction === 'short' ? Number(trade.entry) - Number(trade.exitPrice) : Number(trade.exitPrice) - Number(trade.entry)) * lotSize * effectivePointValue
     : 0;
   $: resolvedPnl = trade.pnl !== '' ? parseNumber(trade.pnl) : autoPnl;
-  $: pnlPercent = margin > 0 ? (resolvedPnl / margin) * 100 : 0;
+  $: pnlPercent = riskAmount > 0 ? (resolvedPnl / riskAmount) * 100 : 0;
+  $: visibleCustomColumns = (data.customColumns || []).filter((column) => !/^(margin|caller|leverage)$/i.test(column.label || column.key || ''));
 
   onMount(() => {
     data = loadJournalData();
     trade = zeroTrade();
-    customFields = Object.fromEntries((data.customColumns || []).map((column) => [column.key, '']));
+    customFields = Object.fromEntries(visibleCustomColumns.map((column) => [column.key, '']));
   });
 
   function zeroTrade() {
@@ -47,14 +47,12 @@
       symbol: '',
       direction: 'long',
       measurementMode: 'price',
-      margin: '',
       entry: 0,
       exitPrice: 0,
       stopPrice: 0,
       slPoints: 0,
       pointValue: '',
       lotSize: '',
-      caller: '',
       result: 'open',
       pnl: '',
       notes: ''
@@ -81,7 +79,7 @@
       symbol: String(trade.symbol || '0').trim().toUpperCase() || '0',
       direction: trade.direction,
       measurementMode: 'price',
-      margin,
+      margin: riskAmount,
       entry: parseNumber(trade.entry),
       exitPrice: parseNumber(trade.exitPrice),
       stopPrice: savedStopPrice,
@@ -100,7 +98,7 @@
       rawTp2: 0,
       rawTp3: 0,
       pointValue: effectivePointValue,
-      riskAmount: margin,
+      riskAmount,
       lotSize,
       rr,
       estimatedGain: pnl || 0,
@@ -108,8 +106,8 @@
       pnl,
       pnlPercent,
       manualPnl,
-      caller: trade.caller.trim(),
-      signalBy: trade.caller.trim(),
+      caller: '',
+      signalBy: '',
       notes: trade.notes.trim(),
       customFields: { ...customFields }
     };
@@ -121,7 +119,7 @@
     saveJournalData(next);
     data = next;
     trade = zeroTrade();
-    customFields = Object.fromEntries((data.customColumns || []).map((column) => [column.key, '']));
+    customFields = Object.fromEntries(visibleCustomColumns.map((column) => [column.key, '']));
     status = 'Trade added.';
     window.dispatchEvent(new CustomEvent('mindshift-notify', { detail: { message: 'Trade Added' } }));
     setTimeout(() => {
@@ -186,24 +184,9 @@
           <CustomSelect bind:value={trade.result} options={resultOptions} ariaLabel="Trade result" />
         </label>
 
-        <div class="form-row custom-fields-row">
-          <label class="field">
-            <span>margin</span>
-            <input bind:value={trade.margin} type="number" min="0" step="0.01" placeholder={defaultRiskAmount ? String(defaultRiskAmount.toFixed(2)) : '0'} />
-          </label>
-          <label class="field">
-            <span>lot</span>
-            <input bind:value={trade.lotSize} type="number" min="0" step="0.01" placeholder="auto" />
-          </label>
-          <label class="field">
-            <span>caller</span>
-            <input bind:value={trade.caller} type="text" maxlength="80" placeholder="Signal, mentor, self..." />
-          </label>
-        </div>
-
-        {#if data.customColumns?.length}
+        {#if visibleCustomColumns.length}
           <div class="form-row custom-fields-row">
-            {#each data.customColumns || [] as column}
+            {#each visibleCustomColumns as column}
               <label class="field">
                 <span>{column.label}</span>
                 <input bind:value={customFields[column.key]} type="text" maxlength="120" placeholder="0" />
@@ -218,13 +201,12 @@
         </label>
 
         <div class="stats-grid add-trade-stats">
-          <div><span>margin</span><strong>${margin.toFixed(2)}</strong></div>
+          <div><span>lot</span><strong>{lotSize.toFixed(2)}</strong></div>
           <div><span>rr</span><strong>{rr.toFixed(2)}R</strong></div>
           <div class="pnl-entry">
             <span>pnl</span>
             <input bind:value={trade.pnl} type="number" step="0.01" placeholder="0" />
           </div>
-          <div><span>pnl %</span><strong class:pnl-positive={pnlPercent > 0} class:pnl-negative={pnlPercent < 0}>{pnlPercent.toFixed(2)}%</strong></div>
         </div>
 
         <button class="primary-button wide" type="button" on:click={addTrade}>Add Trade</button>
