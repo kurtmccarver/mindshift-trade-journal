@@ -9,7 +9,7 @@
     { href: '/dashboard', label: '01 - dashboard' },
     { href: '/trades', label: '02 - trades' },
     { href: '/calculator', label: '03 - calculator' },
-    { href: '/dashboard#rules', label: '04 - rules', propFirmOnly: true }
+    { href: '/dashboard#rules', label: '04 - rules beta', propFirmOnly: true }
   ];
 
   const settingsLink = { href: '/settings', label: 'Settings' };

@@ -24,7 +24,7 @@
     <p>Backups and scheduled snapshots are also stored locally in this browser. They may include trades, app settings, custom columns, theme preferences, and sidebar pins. Exported backup JSON files are created only when you choose to download them.</p>
 
     <h2>Information Usage</h2>
-    <p>The app uses your entries only to calculate lot size, RR, PnL, challenge progress, filters, charts, and exports. Do not store passwords, API secrets, account logins, or other sensitive credentials in notes or custom columns.</p>
+    <p>The app uses your entries only to calculate lot size, RR, PnL, prop firm beta challenge progress, filters, charts, and exports. Do not store passwords, API secrets, account logins, or other sensitive credentials in notes or custom columns.</p>
 
     <h2>Feedback Form</h2>
     <p>The sidebar feedback form asks for your name, optional community, how you heard about the app, and your feedback. Feedback submissions are sent to this app's Supabase project so the developer can review suggestions, understand usage context, and improve the app. The feedback form also stores basic technical metadata such as browser user agent and a hashed client address for abuse prevention and debugging.</p>

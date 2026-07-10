@@ -109,7 +109,7 @@
     const settings = backup.snapshot?.appSettings || {};
     if (settings.simpleMode) return 'simple mode';
     if (settings.propFirmEnabled === false) return 'journal mode';
-    return 'prop firm mode';
+    return 'prop firm beta mode';
   }
 
   function handleRestoreOverlay(event) {

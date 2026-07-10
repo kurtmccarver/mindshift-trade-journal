@@ -23,10 +23,10 @@
       ]
     : [
         ['Add Trade', 'A pinned quick-entry page for journaling a trade directly into the saved table.'],
-        ['Dashboard', 'Shows challenge progress, target health, PnL, win rate, RR gain, charts, pair/token distribution, caller analysis, and recent trades.'],
+        ['Dashboard', 'Shows prop firm beta challenge progress, target health, PnL, win rate, RR gain, charts, pair/token distribution, caller analysis, and recent trades.'],
         ['Trades', 'Lists every trade in one editable table. Filter by token, date, caller, notes, and type, edit cells inline, add custom columns, and delete selected trades.'],
         ['Calculator', 'A standalone volume calculator for quick position sizing using capital, risk, entry, stop, target, and value per lot.'],
-        ['Rules', 'Shows account capital, risk percent, phase one, phase two, funded targets, max daily loss, completion checks, and payout readiness.'],
+        ['Rules Beta', 'Shows account capital, risk percent, phase one, phase two, funded targets, max daily loss, completion checks, and payout readiness.'],
         ['Backups', 'Creates local snapshots of your journal and settings so you can restore data if something changes unexpectedly.']
       ];
 
@@ -194,20 +194,20 @@
             <input type="radio" bind:group={selectedMode} value="simple" />
             <span>
               <strong>simple mode</strong>
-              <small>Choose this if you only want journal, dashboard, analytics, trades, and calculator tools. Prop-firm rules stay hidden.</small>
+              <small>Choose this if you only want journal, dashboard, analytics, trades, and calculator tools. Prop firm beta rules stay hidden.</small>
             </span>
           </label>
           <label class:selected={selectedMode === 'prop'}>
             <input type="radio" bind:group={selectedMode} value="prop" />
             <span>
-              <strong>prop firm mode</strong>
-              <small>Choose this if you want challenge rules, phases, targets, max losses, completion checks, and payout tracking.</small>
+              <strong>prop firm mode beta</strong>
+              <small>Beta test challenge rules, phases, targets, max losses, completion checks, and payout tracking.</small>
             </span>
           </label>
         </div>
       {:else}
         <div class="onboarding-pages">
-          <p class="micro">pages in {selectedMode === 'simple' ? 'simple mode' : 'prop firm mode'}</p>
+          <p class="micro">pages in {selectedMode === 'simple' ? 'simple mode' : 'prop firm beta mode'}</p>
           {#each onboardingPages as page}
             <article>
               <strong>{page[0]}</strong>

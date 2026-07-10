@@ -27,7 +27,7 @@
 
   <section id="rules" class="section-enter">
     <div class="section-heading">
-      <p>01 - rules</p>
+      <p>01 - rules beta</p>
     </div>
     <div class="card challenge-card">
       <div class="form-grid">
@@ -44,7 +44,7 @@
         <label><span>starting date</span><input id="startDate" type="date" /></label>
       </div>
 
-      <div class="phase-grid" aria-label="Prop firm phases">
+      <div class="phase-grid" aria-label="Prop firm beta phases">
         <article class="phase-panel" data-phase-panel="phase1">
           <p class="micro">phase 1</p>
           <label><span>target %</span><input id="phase1Target" type="number" min="0" step="0.1" /></label>
@@ -229,12 +229,12 @@
   <section id="analytics" class="section-enter">
     <div class="section-heading"><p>03 - analytics</p></div>
     <div class="stats-grid dashboard-stats">
-      <div><span id="pnlLabel">challenge pnl</span><strong id="totalPnl">$0.00</strong></div>
-      <div><span id="targetProgressLabel">target progress</span><strong id="targetProgress">0%</strong></div>
+      <div><span id="pnlLabel">challenge beta pnl</span><strong id="totalPnl">$0.00</strong></div>
+      <div><span id="targetProgressLabel">beta target progress</span><strong id="targetProgress">0%</strong></div>
       <div><span>win rate</span><strong id="winRate">0%</strong></div>
       <div><span>total trades</span><strong id="tradeCount">0</strong></div>
     </div>
-    <div class="progress-shell" aria-label="Challenge target progress"><div id="progressBar"></div></div>
+    <div class="progress-shell" aria-label="Challenge beta target progress"><div id="progressBar"></div></div>
   </section>
 
   <section id="journal" class="section-enter">

@@ -213,22 +213,22 @@
   <section class="section-enter">
     <div class="section-heading">
       <p>01 - performance</p>
-      <span class="status-chip">{appSettings.propFirmEnabled ? summary.activePhase : 'personal'}</span>
+      <span class="status-chip">{appSettings.propFirmEnabled ? `${summary.activePhase} beta` : 'personal'}</span>
     </div>
     <div class="stats-grid dashboard-stats">
-      <div><span>{appSettings.propFirmEnabled ? 'challenge pnl' : 'performance pnl'}</span><strong class:pnl-positive={summary.totalPnl > 0} class:pnl-negative={summary.totalPnl < 0}>{money(summary.totalPnl)}</strong></div>
-      <div><span>{appSettings.propFirmEnabled ? 'target progress' : 'profit target'}</span><strong>{displayProgress.toFixed(0)}%</strong></div>
+      <div><span>{appSettings.propFirmEnabled ? 'challenge beta pnl' : 'performance pnl'}</span><strong class:pnl-positive={summary.totalPnl > 0} class:pnl-negative={summary.totalPnl < 0}>{money(summary.totalPnl)}</strong></div>
+      <div><span>{appSettings.propFirmEnabled ? 'beta target progress' : 'profit target'}</span><strong>{displayProgress.toFixed(0)}%</strong></div>
       <div><span>win rate</span><strong>{summary.winRate.toFixed(0)}%</strong></div>
       <div><span>total trades</span><strong>{summary.totalTrades}</strong></div>
     </div>
-    <div class="progress-shell" aria-label="Challenge target progress">
+    <div class="progress-shell" aria-label="Challenge beta target progress">
       <div style={`width: ${displayProgress}%`}></div>
     </div>
   </section>
 
   <section id="rules" class="section-enter" class:hidden-panel={!appSettings.propFirmEnabled}>
     <div class="section-heading">
-      <p>02 - challenge</p>
+      <p>02 - challenge beta</p>
     </div>
     <div class="stats-grid dashboard-stats">
       <div><span>capital</span><strong>{money(summary.capital)}</strong></div>

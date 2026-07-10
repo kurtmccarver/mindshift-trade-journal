@@ -95,7 +95,7 @@
     <h1>settings.</h1>
     <p class="lede">
       Tune the journal display, currency, dates, theme colors, and prop firm
-      features without changing your saved trades.
+      beta features without changing your saved trades.
     </p>
   </section>
 
@@ -169,14 +169,14 @@
       <div class="feature-rows">
         <div class="feature-row">
           <div>
-            <p class="micro">prop firm</p>
-            <p class="settings-note price-source">Show or hide the challenge rules workspace.</p>
+            <p class="micro">prop firm beta</p>
+            <p class="settings-note price-source">Beta test the challenge rules workspace, phase tracking, and payout readiness tools.</p>
           </div>
           <div class="pretty p-svg p-curve p-thick app-checkbox settings-check">
             <input id="propFirmEnabled" type="checkbox" checked={settings.propFirmEnabled} on:change={() => setMode('prop')} />
             <div class="state p-primary">
               <svg class="svg svg-icon" viewBox="0 0 20 20"><path d="M7.6 14.2 3.8 10.4 5.2 9l2.4 2.4 7.2-7.2 1.4 1.4z" /></svg>
-              <label for="propFirmEnabled">enabled</label>
+              <label for="propFirmEnabled">beta enabled</label>
             </div>
           </div>
         </div>
@@ -202,7 +202,7 @@
     <div class="card data-actions-card">
       <div>
         <p class="micro">journal files</p>
-        <p class="settings-note price-source">Import and export your local trade journal as CSV. Reset clears saved trades, rules, custom columns, and workspace settings on this browser.</p>
+        <p class="settings-note price-source">Import and export your local trade journal as CSV. Reset clears saved trades, prop firm beta rules, custom columns, and workspace settings on this browser.</p>
       </div>
       <div class="section-actions">
         <button class="ghost-button" type="button" on:click={() => importInput?.click()}>Import CSV</button>
@@ -228,7 +228,7 @@
     <div class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="settingsConfirmTitle" tabindex="-1">
       <p class="micro">confirmation</p>
       <h2 id="settingsConfirmTitle">Reset all data?</h2>
-      <p>Reset saved trades, rules, custom columns, and journal settings? This cannot be undone.</p>
+      <p>Reset saved trades, prop firm beta rules, custom columns, and journal settings? This cannot be undone.</p>
       <div class="confirm-actions">
         <button class="ghost-button" type="button" on:click={closeConfirm}>Cancel</button>
         <button class="danger-button" type="button" on:click={resetAllData}>Reset</button>

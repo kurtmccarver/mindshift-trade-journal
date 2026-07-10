@@ -17,7 +17,7 @@
 
   <section class="card legal-copy section-enter">
     <h2>Trading Information</h2>
-    <p>Calculations, RR, PnL, lot size, challenge progress, and dashboard charts are estimates based on the inputs you provide. You are responsible for checking every trade, price, fee, commission, spread, contract size, prop firm rule, and broker rule before acting.</p>
+    <p>Calculations, RR, PnL, lot size, prop firm beta challenge progress, and dashboard charts are estimates based on the inputs you provide. You are responsible for checking every trade, price, fee, commission, spread, contract size, prop firm rule, and broker rule before acting.</p>
 
     <h2>Prices</h2>
     <p>Spot and perpetual futures quotes can come from different venues and may fail or differ from the execution price. When a source is unavailable, manually enter the price shown by your broker or exchange.</p>

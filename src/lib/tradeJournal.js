@@ -346,8 +346,8 @@ function updateAnalytics() {
   const progress = target > 0 ? Math.max(0, Math.min(100, (totalPnl / target) * 100)) : 0;
 
   $("totalPnl").textContent = money.format(totalPnl);
-  if ($("pnlLabel")) $("pnlLabel").textContent = appSettings.propFirmEnabled ? "challenge pnl" : "performance pnl";
-  if ($("targetProgressLabel")) $("targetProgressLabel").textContent = appSettings.propFirmEnabled ? "target progress" : "profit target";
+  if ($("pnlLabel")) $("pnlLabel").textContent = appSettings.propFirmEnabled ? "challenge beta pnl" : "performance pnl";
+  if ($("targetProgressLabel")) $("targetProgressLabel").textContent = appSettings.propFirmEnabled ? "beta target progress" : "profit target";
   $("targetProgress").textContent = `${progress.toFixed(0)}%`;
   $("winRate").textContent = `${winRate.toFixed(0)}%`;
   $("tradeCount").textContent = String(state.trades.length);
@@ -361,7 +361,7 @@ function updateAnalytics() {
     saveState();
     if (!notifiedCompletions.has(completionKey)) {
       notifiedCompletions.add(completionKey);
-      notify(`${state.settings.activePhase.replace("phase", "phase ")} target reached`);
+      notify(`${state.settings.activePhase.replace("phase", "phase ")} beta target reached`);
     }
   }
 }
