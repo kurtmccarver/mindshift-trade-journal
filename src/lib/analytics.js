@@ -5,14 +5,17 @@ import { loadJournalData, summarizeJournal } from './journalData.js';
 
 const ANALYTICS_SESSION_KEY = 'mindshift-analytics-session:v1';
 const SUMMARY_DEBOUNCE_MS = 1200;
+const DEFAULT_POSTHOG_KEY = 'phc_CtBNVkTkp4epQ8mQHzGgnXJjircdFoMqEbvRtYC8G5hd';
+const DEFAULT_POSTHOG_HOST = 'https://us.i.posthog.com';
 
 let posthogClient = null;
 let initialized = false;
 let summaryTimer = null;
 let lastSummaryPayload = '';
+let lastPagePath = '';
 
 export async function initAnalytics() {
-  const posthogKey = env.PUBLIC_POSTHOG_KEY;
+  const posthogKey = env.PUBLIC_POSTHOG_KEY || DEFAULT_POSTHOG_KEY;
   if (initialized || typeof window === 'undefined' || !posthogKey) return;
   initialized = true;
 
@@ -20,7 +23,7 @@ export async function initAnalytics() {
     const module = await import('posthog-js');
     posthogClient = module.default;
     posthogClient.init(posthogKey, {
-      api_host: env.PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
+      api_host: env.PUBLIC_POSTHOG_HOST || DEFAULT_POSTHOG_HOST,
       autocapture: false,
       capture_pageview: false,
       capture_pageleave: false,
@@ -30,6 +33,7 @@ export async function initAnalytics() {
     });
 
     captureAppOpened();
+    capturePageViewed(window.location.pathname);
     captureJournalSummary('app_opened');
   } catch {
     initialized = false;
@@ -55,10 +59,38 @@ export function captureModeChanged() {
   posthogClient.capture('mode_changed', buildAggregatePayload('mode_changed'));
 }
 
+export function capturePageViewed(pathname = '') {
+  if (!posthogClient) return;
+  const safePath = sanitizePath(pathname);
+  if (!safePath || safePath === lastPagePath) return;
+  lastPagePath = safePath;
+  posthogClient.capture('page_viewed', {
+    page_path: safePath,
+    simple_mode_enabled: Boolean(loadAppSettings().simpleMode),
+    prop_firm_beta_enabled: Boolean(loadAppSettings().propFirmEnabled)
+  });
+}
+
 function captureAppOpened() {
   if (sessionStorage.getItem(ANALYTICS_SESSION_KEY)) return;
   sessionStorage.setItem(ANALYTICS_SESSION_KEY, new Date().toISOString());
   posthogClient.capture('app_opened', buildAggregatePayload('app_opened'));
+}
+
+function sanitizePath(pathname) {
+  const allowedPaths = new Set([
+    '/',
+    '/dashboard',
+    '/trades',
+    '/add-trade',
+    '/calculator',
+    '/settings',
+    '/backups',
+    '/privacy',
+    '/terms',
+    '/admin'
+  ]);
+  return allowedPaths.has(pathname) ? pathname : '/unknown';
 }
 
 function buildAggregatePayload(reason) {

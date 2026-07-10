@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { afterNavigate } from '$app/navigation';
   import '../app.css';
-  import { captureJournalSummary, captureModeChanged, initAnalytics } from '$lib/analytics.js';
+  import { captureJournalSummary, captureModeChanged, capturePageViewed, initAnalytics } from '$lib/analytics.js';
   import { applyAppSettings, loadAppSettings, saveAppSettings } from '$lib/appSettings.js';
   import { createScheduledBackupIfDue } from '$lib/backupActions.js';
 
@@ -98,6 +98,7 @@
     if (typeof window !== 'undefined') {
       applyAppSettings(loadAppSettings());
       applyTheme();
+      capturePageViewed(window.location.pathname);
     }
   });
 
