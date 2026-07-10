@@ -1517,7 +1517,7 @@ input.live-price-panel {
 }
 
 .trades-table .notes-cell {
-  width: 15%;
+  width: 28%;
   min-width: 0;
   max-width: none;
 }
@@ -1538,12 +1538,29 @@ input.live-price-panel {
 }
 
 .trades-table .row-action-cell {
-  width: 4.5rem;
+  width: 2.75rem;
 }
 
 .trades-table .delete-trade {
-  padding: 0.26rem 0.44rem;
+  padding: 0.26rem;
   font-size: 10px;
+}
+
+.delete-trade.icon-only {
+  display: inline-grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+}
+
+.delete-trade.icon-only svg {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
 }
 
 .add-trade-table table {
@@ -1596,6 +1613,34 @@ input.live-price-panel {
 .add-trade-form {
   display: grid;
   gap: 1rem;
+}
+
+.side-toggle-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.side-toggle-row button {
+  min-height: 2.75rem;
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--gray-50) 82%, var(--background));
+  color: var(--gray-500);
+  font-weight: 800;
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+.side-toggle-row button.active.long {
+  border-color: var(--secondary);
+  background: var(--secondary-soft);
+  color: var(--secondary);
+}
+
+.side-toggle-row button.active.short {
+  border-color: var(--danger);
+  background: var(--danger-soft);
+  color: var(--danger);
 }
 
 .add-trade-form .field span {

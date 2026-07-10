@@ -9,7 +9,6 @@
   let summary = summarizeJournal(data);
   let pairFilter = '';
   let sideFilter = 'all';
-  let callerFilter = 'all';
   let notesFilter = '';
   let fromDate = '';
   let toDate = '';
@@ -33,13 +32,8 @@
     { value: 'breakeven', label: 'Breakeven' }
   ];
 
-  $: callerOptions = [
-    { value: 'all', label: 'All' },
-    ...[...new Set(data.trades.map((trade) => String(trade.caller || trade.signalBy || '').trim()).filter(Boolean))]
-      .sort()
-      .map((value) => ({ value, label: value }))
-  ];
-  $: filteredTrades = data.trades.filter((trade) => matchesFilters(trade, pairFilter, sideFilter, callerFilter, notesFilter, fromDate, toDate));
+  $: filteredTrades = data.trades.filter((trade) => matchesFilters(trade, pairFilter, sideFilter, notesFilter, fromDate, toDate));
+  $: visibleCustomColumns = (data.customColumns || []).filter((column) => !/^(margin|caller|leverage)$/i.test(column.label || column.key || ''));
 
   onMount(() => {
     refresh();
@@ -57,16 +51,14 @@
     summary = summarizeJournal(data);
   }
 
-  function matchesFilters(trade, pair, side, caller, notes, from, to) {
+  function matchesFilters(trade, pair, side, notes, from, to) {
     const pairMatches = !pair || String(trade.symbol || '').toLowerCase().includes(pair.toLowerCase());
     const sideMatches = side === 'all' || trade.direction === side;
-    const tradeCaller = String(trade.caller || trade.signalBy || '').trim();
-    const callerMatches = caller === 'all' || tradeCaller === caller;
     const notesMatches = !notes || String(trade.notes || '').toLowerCase().includes(notes.toLowerCase());
     const tradeDate = String(trade.date || '').slice(0, 10);
     const fromMatches = !from || tradeDate >= from;
     const toMatches = !to || tradeDate <= to;
-    return pairMatches && sideMatches && callerMatches && notesMatches && fromMatches && toMatches;
+    return pairMatches && sideMatches && notesMatches && fromMatches && toMatches;
   }
 
   function addColumn() {
@@ -164,7 +156,6 @@
     summary = summarizeJournal(next);
     pairFilter = '';
     sideFilter = 'all';
-    callerFilter = 'all';
     notesFilter = '';
     fromDate = '';
     toDate = '';
@@ -344,10 +335,6 @@
         <label><span>to</span><input bind:value={toDate} type="date" /></label>
         <label><span>token</span><input bind:value={pairFilter} type="search" placeholder="BTCUSDT, EURUSD..." /></label>
         <label>
-          <span>caller</span>
-          <CustomSelect bind:value={callerFilter} options={callerOptions} ariaLabel="Filter by caller" />
-        </label>
-        <label>
           <span>type</span>
           <CustomSelect bind:value={sideFilter} options={sideFilterOptions} ariaLabel="Filter by side" />
         </label>
@@ -372,7 +359,6 @@
           <tr>
             <th>Date</th>
             <th>Token</th>
-            <th>Margin</th>
             <th>Side</th>
             <th>Entry</th>
             <th>Exit</th>
@@ -382,8 +368,7 @@
             <th>RR</th>
             <th>Result</th>
             <th>PnL</th>
-            <th>Caller</th>
-            {#each data.customColumns as column}
+            {#each visibleCustomColumns as column}
               <th>{column.label}</th>
             {/each}
             <th>Notes</th>
@@ -396,7 +381,6 @@
               <tr>
                 <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.date || ''} on:input={(event) => saveCellDraft(event, trade.id, 'date')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'date')}>{date(trade.date)}</span></td>
                 <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.symbol || ''} on:input={(event) => saveCellDraft(event, trade.id, 'symbol')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'symbol')}>{trade.symbol}</span></td>
-                <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.margin || ''} on:input={(event) => saveCellDraft(event, trade.id, 'margin')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'margin')}>{number(trade.margin)}</span></td>
                 <td>
                   <CustomSelect value={trade.direction || 'long'} options={sideOptions} tone={trade.direction || 'long'} ariaLabel="Trade side" on:change={(event) => updateTradeCell(trade.id, 'direction', event.detail)} />
                 </td>
@@ -410,16 +394,25 @@
                   <CustomSelect value={trade.result || 'open'} options={resultOptions} ariaLabel="Trade result" on:change={(event) => updateTradeCell(trade.id, 'result', event.detail)} />
                 </td>
                 <td><span class={`editable-cell ${pnlTone(getTradePnl(trade))}`} contenteditable="true" role="textbox" tabindex="0" data-original-value={getTradePnl(trade)} on:input={(event) => saveCellDraft(event, trade.id, 'pnl')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'pnl')}>{money(getTradePnl(trade))}</span></td>
-                <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.caller || trade.signalBy || ''} on:input={(event) => saveCellDraft(event, trade.id, 'caller')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'caller')}>{trade.caller || trade.signalBy || ''}</span></td>
-                {#each data.customColumns as column}
+                {#each visibleCustomColumns as column}
                   <td><span class="editable-cell" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.customFields?.[column.key] || ''} on:input={(event) => saveCellDraft(event, trade.id, `custom:${column.key}`)} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, `custom:${column.key}`)}>{trade.customFields?.[column.key] || ''}</span></td>
                 {/each}
                 <td class="notes-cell" title={trade.notes || ''}><span class="editable-cell notes-editor" contenteditable="true" role="textbox" tabindex="0" data-original-value={trade.notes || ''} on:input={(event) => saveCellDraft(event, trade.id, 'notes')} on:keydown={handleCellKey} on:blur={(event) => commitCell(event, trade.id, 'notes')}>{trade.notes || ''}</span></td>
-                <td class="row-action-cell"><button class="delete-trade" type="button" on:click={() => askDelete(trade)}>Delete</button></td>
+                <td class="row-action-cell">
+                  <button class="delete-trade icon-only" type="button" aria-label={`Delete ${trade.symbol || 'trade'}`} title="Delete" on:click={() => askDelete(trade)}>
+                    <svg aria-hidden="true" viewBox="0 0 24 24">
+                      <path d="M3 6h18" />
+                      <path d="M8 6V4h8v2" />
+                      <path d="M19 6l-1 15H6L5 6" />
+                      <path d="M10 11v6" />
+                      <path d="M14 11v6" />
+                    </svg>
+                  </button>
+                </td>
               </tr>
             {/each}
           {:else}
-            <tr><td colspan={15 + data.customColumns.length}>No trades match the current filters.</td></tr>
+            <tr><td colspan={13 + visibleCustomColumns.length}>No trades match the current filters.</td></tr>
           {/if}
         </tbody>
       </table>
@@ -454,7 +447,6 @@
         <input bind:value={newColumn} list="columnSuggestions" type="text" maxlength="32" placeholder="Session, setup..." on:blur={() => (newColumn = normalizeColumnLabel(newColumn))} on:keydown={(event) => event.key === 'Enter' && addColumn()} />
       </label>
       <datalist id="columnSuggestions">
-        <option value="caller"></option>
         <option value="session"></option>
         <option value="setup"></option>
         <option value="emotion"></option>

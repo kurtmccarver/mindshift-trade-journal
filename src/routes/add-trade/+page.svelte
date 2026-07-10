@@ -1,7 +1,6 @@
 <script>
   import { onMount } from 'svelte';
   import AppSidebar from '$lib/AppSidebar.svelte';
-  import CustomSelect from '$lib/CustomSelect.svelte';
   import { saveJournalData } from '$lib/journalActions.js';
   import { loadJournalData } from '$lib/journalData.js';
 
@@ -14,12 +13,6 @@
     { value: 'long', label: 'Long' },
     { value: 'short', label: 'Short' }
   ];
-  const resultOptions = [
-    { value: 'open', label: 'Open' },
-    { value: 'win', label: 'Win' },
-    { value: 'loss', label: 'Loss' },
-    { value: 'breakeven', label: 'Breakeven' }
-  ];
 
   $: riskAmount = (Number(data.settings?.capital) || 0) * ((Number(data.settings?.riskPercent) || 0) / 100);
   $: savedStopPrice = parseNumber(trade.stopPrice);
@@ -31,14 +24,12 @@
   $: autoPnl = Number(trade.exitPrice) > 0 && Number(trade.entry) > 0
     ? (trade.direction === 'short' ? Number(trade.entry) - Number(trade.exitPrice) : Number(trade.exitPrice) - Number(trade.entry)) * lotSize * effectivePointValue
     : 0;
-  $: resolvedPnl = trade.pnl !== '' ? parseNumber(trade.pnl) : autoPnl;
-  $: pnlPercent = riskAmount > 0 ? (resolvedPnl / riskAmount) * 100 : 0;
-  $: visibleCustomColumns = (data.customColumns || []).filter((column) => !/^(margin|caller|leverage)$/i.test(column.label || column.key || ''));
+  $: pnlPercent = riskAmount > 0 ? (autoPnl / riskAmount) * 100 : 0;
 
   onMount(() => {
     data = loadJournalData();
     trade = zeroTrade();
-    customFields = Object.fromEntries(visibleCustomColumns.map((column) => [column.key, '']));
+    customFields = {};
   });
 
   function zeroTrade() {
@@ -54,7 +45,6 @@
       pointValue: '',
       lotSize: '',
       result: 'open',
-      pnl: '',
       notes: ''
     };
   }
@@ -70,8 +60,7 @@
   }
 
   function addTrade() {
-    const manualPnl = trade.pnl !== '';
-    const pnl = manualPnl ? parseNumber(trade.pnl) : Number(trade.exitPrice) > 0 ? autoPnl : null;
+    const pnl = Number(trade.exitPrice) > 0 ? autoPnl : null;
 
     const nextTrade = {
       id: createId(),
@@ -102,10 +91,10 @@
       lotSize,
       rr,
       estimatedGain: pnl || 0,
-      result: pnl > 0 ? 'win' : pnl < 0 ? 'loss' : trade.result,
+      result: 'open',
       pnl,
       pnlPercent,
-      manualPnl,
+      manualPnl: false,
       caller: '',
       signalBy: '',
       notes: trade.notes.trim(),
@@ -119,7 +108,7 @@
     saveJournalData(next);
     data = next;
     trade = zeroTrade();
-    customFields = Object.fromEntries(visibleCustomColumns.map((column) => [column.key, '']));
+    customFields = {};
     status = 'Trade added.';
     window.dispatchEvent(new CustomEvent('mindshift-notify', { detail: { message: 'Trade Added' } }));
     setTimeout(() => {
@@ -148,19 +137,27 @@
     </div>
     <div class="card add-trade-card add-trade-form-card">
       <div class="add-trade-form">
-        <label class="field date-field">
-          <span>date</span>
-          <input bind:value={trade.date} type="date" />
-        </label>
+        <div class="side-toggle-row" aria-label="Trade side">
+          {#each sideOptions as option}
+            <button
+              class:active={trade.direction === option.value}
+              class={option.value}
+              type="button"
+              on:click={() => (trade.direction = option.value)}
+            >
+              {option.label}
+            </button>
+          {/each}
+        </div>
 
         <div class="form-row two-cols">
           <label class="field">
-            <span>pair</span>
+            <span>token</span>
             <input bind:value={trade.symbol} type="text" maxlength="32" placeholder="BTCUSDT" />
           </label>
-          <label class="field">
-            <span>side</span>
-            <CustomSelect bind:value={trade.direction} options={sideOptions} tone={trade.direction} ariaLabel="Trade side" />
+          <label class="field date-field">
+            <span>date</span>
+            <input bind:value={trade.date} type="date" />
           </label>
         </div>
 
@@ -179,35 +176,10 @@
           </label>
         </div>
 
-        <label class="field result-field">
-          <span>result</span>
-          <CustomSelect bind:value={trade.result} options={resultOptions} ariaLabel="Trade result" />
-        </label>
-
-        {#if visibleCustomColumns.length}
-          <div class="form-row custom-fields-row">
-            {#each visibleCustomColumns as column}
-              <label class="field">
-                <span>{column.label}</span>
-                <input bind:value={customFields[column.key]} type="text" maxlength="120" placeholder="0" />
-              </label>
-            {/each}
-          </div>
-        {/if}
-
         <label class="field notes-field">
           <span>notes</span>
           <textarea bind:value={trade.notes} rows="4" placeholder="Setup, emotion, execution..."></textarea>
         </label>
-
-        <div class="stats-grid add-trade-stats">
-          <div><span>lot</span><strong>{lotSize.toFixed(2)}</strong></div>
-          <div><span>rr</span><strong>{rr.toFixed(2)}R</strong></div>
-          <div class="pnl-entry">
-            <span>pnl</span>
-            <input bind:value={trade.pnl} type="number" step="0.01" placeholder="0" />
-          </div>
-        </div>
 
         <button class="primary-button wide" type="button" on:click={addTrade}>Add Trade</button>
       </div>
