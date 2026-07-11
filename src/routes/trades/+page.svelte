@@ -1,7 +1,6 @@
 <script>
   import { onMount } from 'svelte';
   import AppSidebar from '$lib/AppSidebar.svelte';
-  import CustomSelect from '$lib/CustomSelect.svelte';
   import { deleteTradesById, saveJournalData } from '$lib/journalActions.js';
   import { date, getTradePnl, loadJournalData, money, number, summarizeJournal } from '$lib/journalData.js';
 
@@ -15,14 +14,7 @@
   let notice = '';
   let confirmOpen = false;
   let deleteTarget = null;
-  const sideOptions = [
-    { value: 'long', label: 'Long' },
-    { value: 'short', label: 'Short' }
-  ];
-  const sideFilterOptions = [
-    { value: 'all', label: 'All sides' },
-    ...sideOptions
-  ];
+  const sideFilterCycle = ['all', 'long', 'short'];
   const resultOptions = [
     { value: 'open', label: 'Open' },
     { value: 'win', label: 'Win' },
@@ -128,6 +120,24 @@
     const currentIndex = resultCycle.indexOf(currentResult || 'open');
     const nextIndex = currentIndex >= 0 ? (currentIndex + 1) % resultCycle.length : 0;
     updateTradeCell(tradeId, 'result', resultCycle[nextIndex]);
+  }
+
+  function toggleSideFilter() {
+    const currentIndex = sideFilterCycle.indexOf(sideFilter);
+    const nextIndex = currentIndex >= 0 ? (currentIndex + 1) % sideFilterCycle.length : 0;
+    sideFilter = sideFilterCycle[nextIndex];
+  }
+
+  function sideFilterLabel() {
+    if (sideFilter === 'long') return 'Long';
+    if (sideFilter === 'short') return 'Short';
+    return 'All Sides';
+  }
+
+  function sideFilterArrow() {
+    if (sideFilter === 'long') return '↑';
+    if (sideFilter === 'short') return '↓';
+    return '→';
   }
 
   function resultArrow(result) {
@@ -322,7 +332,10 @@
         <label><span>token</span><input bind:value={pairFilter} type="search" placeholder="BTCUSDT, EURUSD..." /></label>
         <label>
           <span>type</span>
-          <CustomSelect bind:value={sideFilter} options={sideFilterOptions} ariaLabel="Filter by side" />
+          <button class={`filter-toggle ${sideFilter}`} type="button" aria-label="Toggle side filter" on:click={toggleSideFilter}>
+            <span aria-hidden="true">{sideFilterArrow()}</span>
+            {sideFilterLabel()}
+          </button>
         </label>
         <label><span>notes</span><input bind:value={notesFilter} type="search" placeholder="Search..." /></label>
       </div>
