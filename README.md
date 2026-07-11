@@ -101,9 +101,10 @@ Feedback requires these environment variables when deployed:
 SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
 FEEDBACK_ADMIN_TOKEN=
+ADMIN_PANEL_SLUG=
 ```
 
-Never publish service role keys, admin tokens, broker credentials, exchange API keys, or account credentials.
+Use `ADMIN_PANEL_SLUG` to create a private feedback console URL, and keep it out of public docs, screenshots, and commits. Never publish service role keys, admin tokens, broker credentials, exchange API keys, or account credentials.
 
 ## License
 

@@ -2,10 +2,14 @@
   import { onMount } from 'svelte';
   import AppSidebar from '$lib/AppSidebar.svelte';
 
+  export let data;
+
   let token = '';
   let feedback = [];
   let status = '';
   let loading = false;
+
+  $: feedbackApiPath = `/api/private/${encodeURIComponent(data.adminSlug)}/feedback`;
 
   onMount(() => {
     token = sessionStorage.getItem('mindshift-admin-token') || '';
@@ -18,7 +22,7 @@
     sessionStorage.setItem('mindshift-admin-token', token);
 
     try {
-      const response = await fetch('/api/admin/feedback', {
+      const response = await fetch(feedbackApiPath, {
         headers: { 'x-admin-token': token }
       });
       const result = await response.json();
@@ -35,14 +39,15 @@
 </script>
 
 <svelte:head>
-  <title>Admin Feedback | MindShift Trade Journal</title>
+  <title>Feedback Console | MindShift Trade Journal</title>
+  <meta name="robots" content="noindex,nofollow" />
 </svelte:head>
 
-<AppSidebar current="/admin" />
+<AppSidebar current="" />
 
 <main class="page-shell">
   <section class="hero compact-hero section-enter">
-    <p class="eyebrow">admin</p>
+    <p class="eyebrow">private</p>
     <h1>feedback.</h1>
     <p class="lede">Read sidebar feedback submitted through the Supabase feedback table.</p>
   </section>
@@ -54,11 +59,11 @@
     </div>
     <form class="card quote-line custom-entry" on:submit|preventDefault={loadFeedback}>
       <label>
-        <span>admin token</span>
-        <input bind:value={token} type="password" placeholder="FEEDBACK_ADMIN_TOKEN" />
+        <span>access token</span>
+        <input bind:value={token} type="password" placeholder="Private token" autocomplete="off" />
       </label>
       <button class="primary-button" type="submit" disabled={loading || !token}>
-        {loading ? 'loading...' : 'load feedback'}
+        {loading ? 'Loading...' : 'Load Feedback'}
       </button>
     </form>
   </section>

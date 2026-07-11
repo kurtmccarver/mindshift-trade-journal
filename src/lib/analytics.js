@@ -87,9 +87,9 @@ function sanitizePath(pathname) {
     '/settings',
     '/backups',
     '/privacy',
-    '/terms',
-    '/admin'
+    '/terms'
   ]);
+  if (pathname.startsWith('/a/')) return '/private';
   return allowedPaths.has(pathname) ? pathname : '/unknown';
 }
 

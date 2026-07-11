@@ -19,7 +19,7 @@ Please contact Kurt McCarver through the project owner account or private projec
 
 ## Data And Secrets
 
-- Do not commit `.env.local`, Supabase service role keys, admin tokens, broker credentials, exchange API keys, or account credentials.
+- Do not commit `.env.local`, Supabase service role keys, admin tokens, private admin slugs, broker credentials, exchange API keys, or account credentials.
 - The Supabase service role key must only be used server-side.
 - Rotate any exposed key immediately.
 - Trade and settings data are local-first and stored in browser local storage.
@@ -29,7 +29,7 @@ Please contact Kurt McCarver through the project owner account or private projec
 
 - Server-side rate limiting for feedback submissions
 - Server-side rate limiting for price requests
-- Admin feedback route protected by `FEEDBACK_ADMIN_TOKEN`
+- Private feedback console protected by both `ADMIN_PANEL_SLUG` and `FEEDBACK_ADMIN_TOKEN`
 - Row-level security policy for the Supabase feedback table
 - Input length limits and text normalization before feedback storage
 - Vercel server runtime for service-role Supabase requests
